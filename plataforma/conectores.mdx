@@ -1,0 +1,181 @@
+---
+title: "Conectores"
+description: "Conectores configuráveis para integração com sistemas externos"
+icon: "plug"
+---
+
+**Conectores** são componentes configuráveis dentro da plataforma que possibilitam a integração com sistemas externos para consulta, manipulação e sincronização de dados.
+
+## Visão Geral
+
+A plataforma suporta múltiplos tipos de conectores, abrangendo APIs REST e bancos de dados relacionais e não relacionais, garantindo flexibilidade para atender diferentes cenários de negócio.
+
+<CardGroup cols={2}>
+  <Card title="REST API" icon="globe">
+    Conexões RESTful com autenticação flexível
+  </Card>
+  <Card title="MongoDB" icon="leaf">
+    Banco de dados NoSQL com operações CRUD
+  </Card>
+  <Card title="MySQL" icon="database">
+    Banco relacional com queries dinâmicas
+  </Card>
+  <Card title="SQL Server" icon="database">
+    Suporte a stored procedures
+  </Card>
+  <Card title="Oracle" icon="database">
+    Conexão via drivers nativos
+  </Card>
+  <Card title="SAP RFC" icon="building">
+    Integração com funções RFC do SAP
+  </Card>
+</CardGroup>
+
+---
+
+## REST API
+
+Permite a configuração completa de conexões RESTful:
+
+| Configuração | Descrição |
+|--------------|-----------|
+| Endpoint Base | URL base da API (ex: `https://api.exemplo.com/v1`) |
+| Métodos HTTP | GET, POST, PUT, DELETE, PATCH |
+| Autenticação | Basic Auth, OAuth 2.0, API Keys, Bearer Token |
+| Headers | Headers customizados para todas as requisições |
+| Timeout | Tempo limite para conexão e resposta |
+
+### Tipos de Autenticação
+
+<AccordionGroup>
+  <Accordion title="Basic Auth">
+    Autenticação com usuário e senha codificados em Base64.
+    ```
+    Authorization: Basic dXN1YXJpbzpzZW5oYQ==
+    ```
+  </Accordion>
+
+  <Accordion title="Bearer Token">
+    Token de acesso enviado no header Authorization.
+    ```
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+    ```
+  </Accordion>
+
+  <Accordion title="API Key">
+    Chave de API enviada via header ou query parameter.
+    ```
+    X-API-Key: sua-api-key-aqui
+    ```
+  </Accordion>
+
+  <Accordion title="OAuth 2.0">
+    Fluxo completo de OAuth com refresh token automático.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Bancos de Dados Relacionais
+
+### MySQL, SQL Server, Oracle
+
+Permite configuração de conexões utilizando drivers nativos:
+
+| Configuração | Descrição |
+|--------------|-----------|
+| Host | Endereço do servidor |
+| Porta | Porta de conexão |
+| Database | Nome do banco de dados |
+| Usuário/Senha | Credenciais de acesso |
+| SSL | Configuração de conexão segura |
+
+**Funcionalidades:**
+- Queries dinâmicas com bind variables
+- Stored procedures (SQL Server, Oracle)
+- Transações
+- Connection pooling
+
+---
+
+## Bancos de Dados Não Relacionais
+
+### MongoDB
+
+Configuração detalhada de collections e operações:
+
+| Operação | Descrição |
+|----------|-----------|
+| `findOne` | Busca de um único documento |
+| `find` | Busca de múltiplos documentos |
+| `insert` | Inserção de documentos |
+| `update` | Atualização de documentos |
+| `delete` | Remoção de documentos |
+| `aggregate` | Pipeline de agregação |
+
+---
+
+## Fluxo de Configuração
+
+<Steps>
+  <Step title="Criar Conector">
+    Acesse a plataforma e crie um novo conector, selecionando o tipo (REST, MySQL, etc).
+  </Step>
+  <Step title="Configurar Conexão">
+    Preencha os dados de conexão: host, porta, autenticação, etc.
+  </Step>
+  <Step title="Testar Conexão">
+    Use o botão de teste para validar a conectividade antes de salvar.
+  </Step>
+  <Step title="Configurar Credenciais">
+    Configure as credenciais específicas de cada tenant.
+  </Step>
+  <Step title="Usar via IDK">
+    Referencie o conector pelo nome no seu código.
+  </Step>
+</Steps>
+
+---
+
+## Uso no Código
+
+Após configurar o conector na plataforma, use-o nas automações via IDK:
+
+```typescript
+import { MySqlDataSource, RestDataSource } from '@kruzer/idk';
+
+// O nome deve corresponder ao configurado na plataforma
+const mysql = new MySqlDataSource('meu-banco-mysql');
+const api = new RestDataSource('minha-api-externa');
+
+export default async function run() {
+  // Consulta no banco
+  const usuarios = await mysql.query('SELECT * FROM usuarios WHERE ativo = 1');
+
+  // Chamada à API
+  const response = await api.request('POST', '/sync', {
+    body: { usuarios }
+  });
+}
+```
+
+<Tip>
+  O nome do conector no código deve corresponder exatamente ao nome configurado na plataforma.
+</Tip>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Credentials" icon="key" href="/plataforma/credentials">
+    Configure credenciais por tenant
+  </Card>
+  <Card title="MySQL (IDK)" icon="database" href="/data-sources/mysql">
+    Documentação completa do MySqlDataSource
+  </Card>
+  <Card title="REST API (IDK)" icon="globe" href="/integracoes/rest-api">
+    Documentação completa do RestDataSource
+  </Card>
+  <Card title="MongoDB (IDK)" icon="leaf" href="/data-sources/mongodb">
+    Documentação completa do MongoDbDataSource
+  </Card>
+</CardGroup>

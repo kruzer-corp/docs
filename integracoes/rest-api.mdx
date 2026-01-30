@@ -1,0 +1,139 @@
+---
+title: "REST API"
+description: "Faça requisições a APIs REST externas com o RestDataSource"
+icon: "globe"
+---
+
+O `RestDataSource` permite fazer requisições a APIs REST externas configuradas no iPaaS.
+
+## Importação
+
+```typescript
+import { RestDataSource } from '@kruzer/idk';
+```
+
+## Construtor
+
+```typescript
+const rest = new RestDataSource(name: string, options?: RestOptions);
+```
+
+<ResponseField name="name" type="string" required>
+  Nome do data source REST configurado no iPaaS
+</ResponseField>
+
+<ResponseField name="options" type="RestOptions">
+  Opções padrão para todas as requisições
+</ResponseField>
+
+## Métodos
+
+### request()
+
+Executa uma requisição HTTP pré-configurada no iPaaS através do seu alias.
+
+```typescript
+request(alias: string, options?: RestOptions): Promise<any>
+```
+
+<CodeGroup>
+```typescript GET Simples
+const rest = new RestDataSource('api-externa');
+
+const dados = await rest.request('listar-produtos');
+```
+
+```typescript GET com Query Params
+const rest = new RestDataSource('api-externa');
+
+const clientes = await rest.request('buscar-clientes', {
+  params: {
+    page: 1,
+    limit: 20,
+    status: 'ativo'
+  }
+});
+```
+
+```typescript POST com Body
+const rest = new RestDataSource('api-externa');
+
+const novoPedido = await rest.request('criar-pedido', {
+  body: {
+    clienteId: 123,
+    produtos: [
+      { id: 1, quantidade: 2 },
+      { id: 5, quantidade: 1 }
+    ],
+    observacao: 'Entregar no período da manhã'
+  }
+});
+```
+</CodeGroup>
+
+### URL Params (Path Params)
+
+Substitua parâmetros dinâmicos na URL:
+
+```typescript
+const rest = new RestDataSource('api-externa');
+
+const detalhes = await rest.request('detalhes-produto', {
+  urlParams: {
+    id: '12345'
+  }
+});
+// Se o endpoint configurado for: /produtos/{id}
+// A URL final será: /produtos/12345
+```
+
+### Headers Customizados
+
+```typescript
+const rest = new RestDataSource('api-externa');
+
+const resultado = await rest.request('endpoint-protegido', {
+  headers: {
+    'X-Custom-Header': 'valor',
+    'Accept-Language': 'pt-BR'
+  },
+  body: { dados: 'exemplo' }
+});
+```
+
+### Preservar Authorization Header
+
+```typescript
+const rest = new RestDataSource('api-externa');
+
+const resposta = await rest.request('api-com-auth', {
+  body: { info: 'dados' },
+  options: {
+    preserveAuthorizationHeader: true
+  }
+});
+```
+
+## Interface
+
+```typescript
+interface RestOptions {
+  body?: any;
+  params?: {
+    [key: string]: any;
+  };
+  headers?: {
+    [key: string]: any;
+  };
+  urlParams?: {
+    [key: string]: any;
+  };
+  options?: {
+    preserveAuthorizationHeader?: boolean;
+  };
+}
+```
+
+<Note>
+  Os endpoints REST são pré-configurados no iPaaS Kruzer com método HTTP, URL base e headers padrão. Use o `RestDataSource` para executá-los com parâmetros dinâmicos.
+</Note>

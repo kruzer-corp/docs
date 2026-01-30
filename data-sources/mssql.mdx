@@ -1,0 +1,168 @@
+---
+title: "SQL Server (MSSQL)"
+description: "Conecte-se a bancos SQL Server com o MsSqlDataSource"
+icon: "database"
+---
+
+O `MsSqlDataSource` permite executar queries, comandos e stored procedures em bancos SQL Server.
+
+## Importação
+
+```typescript
+import { MsSqlDataSource } from '@kruzer/idk';
+```
+
+## Construtor
+
+```typescript
+const mssql = new MsSqlDataSource(name: string, options?: MsSqlOptions, tenant?: string);
+```
+
+<ResponseField name="name" type="string" required>
+  Nome do data source configurado no iPaaS
+</ResponseField>
+
+<ResponseField name="options" type="MsSqlOptions">
+  Opções padrão para todas as requisições
+</ResponseField>
+
+<ResponseField name="tenant" type="string">
+  Identificador do tenant
+</ResponseField>
+
+## Métodos
+
+### query()
+
+Executa uma query SQL diretamente.
+
+```typescript
+query(query: string, options?: MsSqlOptions): Promise<any>
+```
+
+<CodeGroup>
+```typescript Query Simples
+const mssql = new MsSqlDataSource('meu-datasource');
+
+const usuarios = await mssql.query('SELECT TOP 100 * FROM Usuarios');
+```
+
+```typescript Query com Variáveis
+const mssql = new MsSqlDataSource('meu-datasource');
+
+const pedidos = await mssql.query(
+  'SELECT * FROM Pedidos WHERE ClienteId = @clienteId',
+  {
+    variables: {
+      clienteId: 123
+    }
+  }
+);
+```
+
+```typescript Query com Opções Avançadas
+const mssql = new MsSqlDataSource('meu-datasource');
+
+const resultado = await mssql.query(
+  'SELECT * FROM LogsGrandes',
+  {
+    options: {
+      requestTimeout: 60000,
+      trustServerCertificate: true
+    },
+    showRawResult: true,
+    returnExecutedQuery: true
+  }
+);
+```
+</CodeGroup>
+
+### command()
+
+Executa uma query pré-configurada no iPaaS através do seu alias.
+
+```typescript
+command(alias: string, options?: MsSqlOptions): Promise<any>
+```
+
+<CodeGroup>
+```typescript Executar Query Salva
+const mssql = new MsSqlDataSource('meu-datasource');
+
+const relatorio = await mssql.command('relatorio-vendas-mensal');
+```
+
+```typescript Executar com Variáveis
+const mssql = new MsSqlDataSource('meu-datasource');
+
+const dados = await mssql.command('buscar-cliente', {
+  variables: {
+    cpf: '12345678900'
+  }
+});
+```
+</CodeGroup>
+
+### procedure()
+
+Executa uma stored procedure.
+
+```typescript
+procedure(procedure: IProcedureParams, options?: MsSqlOptions): Promise<any>
+```
+
+<CodeGroup>
+```typescript Procedure com Inputs e Outputs
+const mssql = new MsSqlDataSource('meu-datasource');
+
+const resultado = await mssql.procedure({
+  name: 'sp_ProcessarPedido',
+  inputs: [
+    { name: 'PedidoId', value: 12345 },
+    { name: 'Status', value: 'Aprovado' }
+  ],
+  outputs: [
+    { name: 'Sucesso' },
+    { name: 'Mensagem' }
+  ]
+});
+
+console.log(resultado.Sucesso);
+console.log(resultado.Mensagem);
+```
+
+```typescript Procedure com Inputs
+const mssql = new MsSqlDataSource('meu-datasource');
+
+const clientes = await mssql.procedure({
+  name: 'sp_BuscarClientesPorRegiao',
+  inputs: [
+    { name: 'Regiao', value: 'Sul' },
+    { name: 'ApenasAtivos', value: true }
+  ],
+  outputs: []
+});
+```
+</CodeGroup>
+
+## Interfaces
+
+```typescript
+interface MsSqlOptions {
+  options?: {
+    [key: string]: any;
+    trustServerCertificate?: boolean;
+    requestTimeout?: number;
+    encrypt?: boolean;
+  };
+  showRawResult?: boolean;
+  returnExecutedQuery?: boolean;
+  variables?: any;
+}
+
+interface IProcedureParams {
+  name: string;
+  inputs: { name: string; value: any }[];
+  outputs: { name: string }[];
+}
+```

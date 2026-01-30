@@ -1,0 +1,194 @@
+---
+title: "Triggers"
+description: "Gatilhos para execução de automações"
+icon: "bolt"
+---
+
+**Triggers** são gatilhos configuráveis que iniciam a execução das automações. A plataforma Kruzer suporta dois tipos principais de triggers.
+
+## Tipos de Triggers
+
+<CardGroup cols={2}>
+  <Card title="Agendado" icon="clock">
+    Executa automações em intervalos definidos (cron)
+  </Card>
+  <Card title="Webhook" icon="globe">
+    Executa automações quando uma URL é chamada
+  </Card>
+</CardGroup>
+
+---
+
+## Trigger Agendado
+
+Permite executar automações em intervalos regulares, como a cada X minutos, horas ou em horários específicos.
+
+### Casos de Uso
+
+- Sincronização periódica de dados entre sistemas
+- Geração de relatórios diários/semanais
+- Limpeza de dados temporários
+- Verificação de status de pedidos
+
+### Exemplo de Automação
+
+```typescript
+// automations/sync-estoque.ts
+import { MySqlDataSource, RestDataSource, KrzLogger } from '@kruzer/idk';
+
+const logger = new KrzLogger('info', 'sync-estoque');
+const erp = new MySqlDataSource('erp-database');
+const ecommerce = new RestDataSource('ecommerce-api');
+
+export default async function run() {
+  logger.info('Iniciando sincronização agendada de estoque');
+
+  // Busca produtos atualizados na última hora
+  const produtos = await erp.query(
+    'SELECT sku, quantidade FROM estoque WHERE atualizado_em > DATE_SUB(NOW(), INTERVAL 1 HOUR)'
+  );
+
+  for (const produto of produtos) {
+    await ecommerce.request('PUT', `/products/${produto.sku}/stock`, {
+      body: { quantity: produto.quantidade }
+    });
+  }
+
+  logger.info('Sincronização concluída', { total: produtos.length });
+}
+```
+
+### Configuração na Plataforma
+
+| Campo | Descrição | Exemplo |
+|-------|-----------|---------|
+| Nome | Identificador do trigger | `sync-estoque-hourly` |
+| Automação | Arquivo em `automations/` | `sync-estoque` |
+| Intervalo | Frequência de execução | A cada 1 hora |
+| Tenant | Tenant que executará | `empresa-alpha` |
+
+---
+
+## Trigger Webhook
+
+Disponibiliza uma URL que, quando chamada, executa a automação. Ideal para integrações em tempo real e eventos externos.
+
+### Casos de Uso
+
+- Receber notificações de pagamento
+- Processar eventos de e-commerce (pedido criado, status atualizado)
+- Integração com sistemas legados via callback
+- Receber dados de formulários externos
+
+### Exemplo de Automação
+
+```typescript
+// automations/webhook-pedido.ts
+import { MySqlDataSource, KrzLogger } from '@kruzer/idk';
+
+const logger = new KrzLogger('info', 'webhook-pedido');
+const db = new MySqlDataSource('pedidos-database');
+
+interface PedidoPayload {
+  orderId: string;
+  status: string;
+  items: Array<{ sku: string; quantity: number }>;
+  customer: { name: string; email: string };
+}
+
+export default async function run(params: { payload: PedidoPayload }) {
+  const { payload } = params;
+
+  logger.info('Webhook recebido', { orderId: payload.orderId });
+
+  // Processa o pedido recebido
+  await db.execute(
+    'INSERT INTO pedidos (order_id, status, customer_name, customer_email) VALUES (:orderId, :status, :name, :email)',
+    {
+      orderId: { val: payload.orderId },
+      status: { val: payload.status },
+      name: { val: payload.customer.name },
+      email: { val: payload.customer.email }
+    }
+  );
+
+  // Insere os itens
+  for (const item of payload.items) {
+    await db.execute(
+      'INSERT INTO pedido_itens (order_id, sku, quantity) VALUES (:orderId, :sku, :qty)',
+      {
+        orderId: { val: payload.orderId },
+        sku: { val: item.sku },
+        qty: { val: item.quantity }
+      }
+    );
+  }
+
+  logger.info('Pedido processado com sucesso', { orderId: payload.orderId });
+
+  return { success: true, orderId: payload.orderId };
+}
+```
+
+### URL do Webhook
+
+Após configurar o trigger, a plataforma disponibiliza uma URL única:
+
+```
+https://api.kruzer.io/webhooks/{tenant}/{trigger-id}
+```
+
+<Tip>
+  O payload enviado para a URL do webhook é automaticamente passado para a automação no parâmetro `params.payload`.
+</Tip>
+
+### Exemplo de Chamada
+
+```bash
+curl -X POST https://api.kruzer.io/webhooks/empresa-alpha/webhook-pedido \
+  -H "Content-Type: application/json" \
+  -d '{
+    "orderId": "ORD-12345",
+    "status": "pending",
+    "items": [
+      { "sku": "PROD-001", "quantity": 2 }
+    ],
+    "customer": {
+      "name": "João Silva",
+      "email": "joao@email.com"
+    }
+  }'
+```
+
+---
+
+## Boas Práticas
+
+<AccordionGroup>
+  <Accordion title="Use logging estruturado">
+    Sempre utilize o `KrzLogger` para registrar o início, progresso e conclusão das automações. Isso facilita o debugging e monitoramento.
+  </Accordion>
+
+  <Accordion title="Trate erros adequadamente">
+    Implemente try/catch para capturar e logar erros. Use o padrão de tratamento de erros da plataforma para retries automáticos.
+  </Accordion>
+
+  <Accordion title="Valide payloads de webhooks">
+    Sempre valide os dados recebidos via webhook antes de processá-los para evitar erros em runtime.
+  </Accordion>
+
+  <Accordion title="Idempotência em webhooks">
+    Projete suas automações de webhook para serem idempotentes, pois a mesma chamada pode ocorrer mais de uma vez em caso de retry.
+  </Accordion>
+</AccordionGroup>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Conectores" icon="database" href="/plataforma/conectores">
+    Configure conectores para suas automações
+  </Card>
+  <Card title="Credentials" icon="key" href="/plataforma/credentials">
+    Gerencie credenciais por tenant
+  </Card>
+</CardGroup>

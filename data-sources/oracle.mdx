@@ -1,0 +1,107 @@
+---
+title: "Oracle"
+description: "Conecte-se a bancos Oracle com o OracleDataSource"
+icon: "database"
+---
+
+O `OracleDataSource` permite executar queries e comandos em bancos Oracle.
+
+## Importação
+
+```typescript
+import { OracleDataSource } from '@kruzer/idk';
+```
+
+## Construtor
+
+```typescript
+const oracle = new OracleDataSource(name: string, options?: OracleOptions, tenant?: string);
+```
+
+<ResponseField name="name" type="string" required>
+  Nome do data source configurado no iPaaS
+</ResponseField>
+
+<ResponseField name="options" type="OracleOptions">
+  Opções padrão para todas as requisições
+</ResponseField>
+
+<ResponseField name="tenant" type="string">
+  Identificador do tenant
+</ResponseField>
+
+## Métodos
+
+### query()
+
+Executa uma query SQL diretamente.
+
+```typescript
+query(query: string, options?: OracleOptions): Promise<any>
+```
+
+<CodeGroup>
+```typescript Query Simples
+const oracle = new OracleDataSource('meu-datasource');
+
+const funcionarios = await oracle.query(
+  'SELECT * FROM FUNCIONARIOS WHERE ROWNUM <= 100'
+);
+```
+
+```typescript Query com Bind Variables
+const oracle = new OracleDataSource('meu-datasource');
+
+const pedidos = await oracle.query(
+  'SELECT * FROM PEDIDOS WHERE CLIENTE_ID = :clienteId AND STATUS = :status',
+  {
+    binds: {
+      clienteId: { val: 456 },
+      status: { val: 'ATIVO' }
+    }
+  }
+);
+```
+</CodeGroup>
+
+### command()
+
+Executa uma query pré-configurada no iPaaS através do seu alias.
+
+```typescript
+command(alias: string, options?: OracleOptions): Promise<any>
+```
+
+<CodeGroup>
+```typescript Executar Query Salva
+const oracle = new OracleDataSource('meu-datasource');
+
+const estoque = await oracle.command('consulta-estoque-atual');
+```
+
+```typescript Executar com Binds
+const oracle = new OracleDataSource('meu-datasource');
+
+const vendas = await oracle.command('vendas-por-periodo', {
+  binds: {
+    dataInicio: { val: '2024-01-01' },
+    dataFim: { val: '2024-06-30' }
+  }
+});
+```
+</CodeGroup>
+
+## Interface
+
+```typescript
+interface OracleOptions {
+  [key: string]: any;
+  binds?: {
+    [key: string]: { val: any };
+  };
+}
+```
+
+<Note>
+  No Oracle, as bind variables são passadas usando a sintaxe `:nomeVariavel` na query e o objeto `binds` nas options, onde cada variável é um objeto com a propriedade `val`.
+</Note>

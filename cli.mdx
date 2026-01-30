@@ -1,0 +1,335 @@
+---
+title: "Kruzer CLI"
+description: "Ferramenta de linha de comando para executar automações localmente utilizando o IDK"
+icon: "terminal"
+---
+
+A **Kruzer CLI** (`krz`) é a ferramenta de linha de comando que permite aos desenvolvedores executar arquivos de automação localmente, utilizando o IDK para construir essas automações.
+
+## Por que usar a CLI?
+
+<CardGroup cols={2}>
+  <Card title="Desenvolvimento Local" icon="laptop-code">
+    Teste suas automações localmente antes de publicar no iPaaS
+  </Card>
+  <Card title="Autenticação Integrada" icon="key">
+    Conecte-se ao iPaaS Kruzer com suas credenciais de forma segura
+  </Card>
+  <Card title="Multi-Tenant" icon="building-user">
+    Alterne entre diferentes tenants para testar em ambientes isolados
+  </Card>
+  <Card title="Parâmetros Flexíveis" icon="sliders">
+    Passe parâmetros via arquivo JSON para diferentes cenários de teste
+  </Card>
+</CardGroup>
+
+## Instalação
+
+Instale o CLI globalmente via npm:
+
+```bash
+npm install -g @kruzer/cli
+```
+
+Após a instalação, o comando `krz` estará disponível globalmente no terminal.
+
+<Tip>
+  Verifique a instalação executando `krz --help` para ver a lista de comandos disponíveis.
+</Tip>
+
+## Comandos
+
+### configure
+
+Configura as variáveis do CLI para uso dos demais comandos. Este é o primeiro comando que deve ser executado.
+
+<CodeGroup>
+```bash Configuração Inicial
+$ krz configure
+
+? Provide the ui host to be used in your configuration (ex. "https://domain_or_ip_with_port"): https://app.kruzer.io
+
+? Configuration completed successfully! Do you wish to login and continue the setup? (Y/n)
+```
+
+```bash Reconfiguração
+$ krz configure
+
+? A previous configuration was already found for host https://app.kruzer.io. Do you wish to set a new ui host? (y/N)
+```
+</CodeGroup>
+
+<Note>
+  O host deve incluir o protocolo (`http://` ou `https://`). O CLI valida a conectividade através do endpoint `/api/healthcheck`.
+</Note>
+
+---
+
+### login
+
+Realiza autenticação na plataforma Kruzer.
+
+```bash
+$ krz login
+
+? username: seu.usuario@email.com
+? password: [hidden]
+
+✔ Login completed successfully
+```
+
+**O que acontece:**
+1. Solicita username e password
+2. Autentica no servidor
+3. Armazena o token de acesso localmente
+4. Armazena credenciais codificadas para renovação automática do token
+
+<Warning>
+  É necessário executar `krz configure` antes de fazer login.
+</Warning>
+
+---
+
+### auth
+
+Valida e renova o token de autenticação automaticamente.
+
+```bash
+$ krz auth
+
+✔ Auth completed successfully
+```
+
+**Comportamento:**
+- Se o token estiver válido, apenas confirma
+- Se o token estiver expirado, renova automaticamente usando as credenciais armazenadas
+- Se não houver credenciais armazenadas, exibe erro solicitando novo login
+
+---
+
+### run
+
+Executa um arquivo de automação TypeScript.
+
+**Sintaxe:**
+
+```bash
+krz run <nome-da-automacao> [opções]
+```
+
+**Opções:**
+
+<ResponseField name="-p, --params" type="string">
+  Caminho para arquivo JSON com parâmetros
+</ResponseField>
+
+<CodeGroup>
+```bash Sem Parâmetros
+$ krz run sync-users
+
+✔ Automation executed successfully
+```
+
+```bash Com Parâmetros
+$ krz run import-data --params ./config/import-params.json
+
+✔ Automation executed successfully
+```
+
+```bash Forma Curta
+$ krz run import-data -p ./params.json
+
+✔ Automation executed successfully
+```
+</CodeGroup>
+
+**Estrutura esperada do projeto:**
+
+```
+seu-projeto/
+├── automations/
+│   └── sync-users.ts        # Arquivo fonte
+├── build/
+│   └── automations/
+│       └── sync-users.js    # Arquivo compilado (gerado)
+└── params.json              # Arquivo de parâmetros (opcional)
+```
+
+<AccordionGroup>
+  <Accordion title="Exemplo de arquivo de automação">
+    ```typescript
+    // automations/sync-users.ts
+    export default async function run(params: any) {
+        console.log('Executando sincronização com parâmetros:', params);
+        // Lógica da automação aqui
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Exemplo de arquivo de parâmetros">
+    ```json
+    {
+        "batchSize": 100,
+        "dryRun": false,
+        "filters": {
+            "status": "active"
+        }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  O CLI compila o TypeScript automaticamente antes de executar (`npx tsc -p .`). A validação do token é feita antes da execução.
+</Tip>
+
+---
+
+### select tenant
+
+Seleciona o tenant ativo para testes de projetos.
+
+<CodeGroup>
+```bash Forma Completa
+$ krz select tenant
+
+? Tenant:
+  ❯ Empresa Alpha
+    Empresa Beta
+    Empresa Gamma
+
+✔ Tenant selected successfully
+```
+
+```bash Forma Abreviada
+$ krz s tenant
+
+? Tenant:
+  ❯ Empresa Alpha
+    Empresa Beta
+
+✔ Tenant selected successfully
+```
+</CodeGroup>
+
+**Comportamento:**
+- Lista todos os tenants disponíveis para o usuário
+- Permite seleção interativa com as setas do teclado
+- Armazena o tenant selecionado na configuração local
+
+---
+
+## Fluxo de Uso Típico
+
+```bash
+# 1. Configuração inicial
+krz configure
+
+# 2. Login (se não fez durante configure)
+krz login
+
+# 3. Selecionar tenant
+krz select tenant
+
+# 4. Executar automações
+krz run minha-automacao
+krz run outra-automacao -p ./params.json
+
+# 5. Renovar token quando necessário
+krz auth
+```
+
+---
+
+## Armazenamento de Configurações
+
+As configurações são armazenadas localmente em:
+
+```
+~/.config/configstore/krz-cli.json
+```
+
+**Dados armazenados:**
+- Host configurado
+- Variáveis de ambiente do servidor
+- Token de acesso
+- Credenciais codificadas (para renovação automática)
+- Tenant selecionado
+
+---
+
+## Mensagens de Erro
+
+<AccordionGroup>
+  <Accordion title="Please run 'krz configure' before running this command">
+    **Causa:** Tentou executar comando sem configurar.
+
+    **Solução:** Execute `krz configure` primeiro.
+  </Accordion>
+
+  <Accordion title="Invalid host format, please include http:// or https://">
+    **Causa:** Host informado sem protocolo.
+
+    **Solução:** Inclua `https://` no host.
+  </Accordion>
+
+  <Accordion title="Host unreachable, please verify the host provided">
+    **Causa:** Servidor não acessível.
+
+    **Solução:** Verifique a URL e a conectividade de rede.
+  </Accordion>
+
+  <Accordion title="Invalid login credentials">
+    **Causa:** Usuário ou senha incorretos.
+
+    **Solução:** Verifique as credenciais e tente novamente.
+  </Accordion>
+
+  <Accordion title="Login is required for this action">
+    **Causa:** Token expirado e sem credenciais armazenadas.
+
+    **Solução:** Execute `krz login` novamente.
+  </Accordion>
+
+  <Accordion title="Automation file not found">
+    **Causa:** Arquivo de automação não existe no diretório `build/automations/`.
+
+    **Solução:** Verifique o nome da automação e execute `npm run build` para compilar.
+  </Accordion>
+
+  <Accordion title="Params file not found">
+    **Causa:** Arquivo de parâmetros informado não existe.
+
+    **Solução:** Verifique o caminho do arquivo de parâmetros.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Ajuda
+
+Para ver a lista de comandos disponíveis:
+
+```bash
+krz --help
+```
+
+Para ver ajuda de um comando específico:
+
+```bash
+krz run --help
+```
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Instalação do IDK" icon="download" href="/instalacao">
+    Configure o SDK em seu projeto
+  </Card>
+  <Card title="MySQL" icon="database" href="/data-sources/mysql">
+    Conecte-se ao MySQL nas suas automações
+  </Card>
+  <Card title="REST API" icon="globe" href="/integracoes/rest-api">
+    Integre com APIs externas
+  </Card>
+</CardGroup>

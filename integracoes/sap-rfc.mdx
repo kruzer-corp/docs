@@ -1,0 +1,147 @@
+---
+title: "SAP RFC"
+description: "Chame funções RFC do SAP com o SapRFCDatasource"
+icon: "building"
+---
+
+O `SapRFCDatasource` permite chamar funções RFC do SAP.
+
+## Importação
+
+```typescript
+import { SapRFCDatasource } from '@kruzer/idk';
+```
+
+## Construtor
+
+```typescript
+const sap = new SapRFCDatasource(name: string, tenant?: string);
+```
+
+<ResponseField name="name" type="string" required>
+  Nome do data source SAP configurado no iPaaS
+</ResponseField>
+
+<ResponseField name="tenant" type="string">
+  Identificador do tenant
+</ResponseField>
+
+## Métodos
+
+### call()
+
+Chama uma função RFC do SAP.
+
+```typescript
+call(functionName: string, functionParameters: Record<string, any>, credentials: SapRFCCredentials): Promise<any>
+```
+
+<ResponseField name="functionName" type="string" required>
+  Nome da função RFC a ser chamada
+</ResponseField>
+
+<ResponseField name="functionParameters" type="Record<string, any>" required>
+  Parâmetros de entrada da função
+</ResponseField>
+
+<ResponseField name="credentials" type="SapRFCCredentials" required>
+  Credenciais de conexão SAP
+</ResponseField>
+
+## Exemplos
+
+### BAPI para buscar cliente
+
+```typescript
+import { SapRFCDatasource, SapRFCCredentials } from '@kruzer/idk';
+
+const sap = new SapRFCDatasource('meu-datasource-sap');
+
+const credentials: SapRFCCredentials = {
+  host: 'sap-server.empresa.com',
+  user: 'usuario_rfc',
+  password: 'senha_segura',
+  client: '100',
+  sysnr: '00'
+};
+
+const cliente = await sap.call(
+  'BAPI_CUSTOMER_GETDETAIL',
+  {
+    CUSTOMERNO: '0000012345'
+  },
+  credentials
+);
+```
+
+### BAPI para lista de materiais
+
+```typescript
+import { SapRFCDatasource, SapRFCCredentials } from '@kruzer/idk';
+
+const sap = new SapRFCDatasource('meu-datasource-sap');
+
+const credentials: SapRFCCredentials = {
+  host: 'sap-server.empresa.com',
+  user: 'usuario_rfc',
+  password: 'senha_segura',
+  client: '100',
+  sysnr: '00'
+};
+
+const materiais = await sap.call(
+  'BAPI_MATERIAL_GETLIST',
+  {
+    MATNRSELECTION: [
+      { SIGN: 'I', OPTION: 'CP', MATNR_LOW: 'MAT*' }
+    ],
+    MAXROWS: 100
+  },
+  credentials
+);
+```
+
+### RFC Customizada
+
+```typescript
+import { SapRFCDatasource, SapRFCCredentials } from '@kruzer/idk';
+
+const sap = new SapRFCDatasource('meu-datasource-sap');
+
+const credentials: SapRFCCredentials = {
+  host: 'sap-server.empresa.com',
+  user: 'usuario_rfc',
+  password: 'senha_segura',
+  client: '100',
+  sysnr: '00'
+};
+
+const resultado = await sap.call(
+  'Z_CUSTOM_RFC_FUNCTION',
+  {
+    I_PARAM1: 'valor1',
+    I_PARAM2: 12345,
+    I_TABLE: [
+      { CAMPO1: 'A', CAMPO2: 100 },
+      { CAMPO1: 'B', CAMPO2: 200 }
+    ]
+  },
+  credentials
+);
+```
+
+## Interface
+
+```typescript
+type SapRFCCredentials = {
+  host: string;
+  user: string;
+  password: string;
+  client: string;
+  sysnr: string;
+}
+```
+
+<Warning>
+  Mantenha as credenciais SAP seguras. Nunca as exponha em logs ou código-fonte. Utilize variáveis de ambiente ou secrets do iPaaS Kruzer.
+</Warning>

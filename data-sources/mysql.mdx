@@ -1,0 +1,218 @@
+---
+title: "MySQL"
+description: "Conecte-se a bancos MySQL com o MySqlDataSource"
+icon: "database"
+---
+
+O `MySqlDataSource` permite executar queries, comandos e operações em bancos MySQL.
+
+## Importação
+
+```typescript
+import { MySqlDataSource } from '@kruzer/idk';
+```
+
+## Construtor
+
+```typescript
+const mysql = new MySqlDataSource(name: string, tenant?: string);
+```
+
+<ResponseField name="name" type="string" required>
+  Nome do data source configurado no iPaaS
+</ResponseField>
+
+<ResponseField name="tenant" type="string">
+  Identificador do tenant (opcional)
+</ResponseField>
+
+## Métodos
+
+### query()
+
+Executa uma query SQL diretamente.
+
+```typescript
+query(query: string, options?: MySQLOptions): Promise<any>
+```
+
+<CodeGroup>
+```typescript Query Simples
+const mysql = new MySqlDataSource('meu-datasource');
+
+const usuarios = await mysql.query('SELECT * FROM usuarios WHERE ativo = 1');
+```
+
+```typescript Query com Variáveis
+const mysql = new MySqlDataSource('meu-datasource');
+
+const resultado = await mysql.query(
+  'SELECT * FROM pedidos WHERE status = :status AND data >= :data',
+  {
+    variables: {
+      status: 'pendente',
+      data: '2024-01-01'
+    }
+  }
+);
+```
+</CodeGroup>
+
+### execute()
+
+Executa uma query pré-configurada no iPaaS através do seu alias.
+
+```typescript
+execute(alias: string, options?: MySQLOptions): Promise<any>
+```
+
+<CodeGroup>
+```typescript Executar Query Salva
+const mysql = new MySqlDataSource('meu-datasource');
+
+const clientes = await mysql.execute('buscar-clientes-ativos');
+```
+
+```typescript Executar com Variáveis
+const mysql = new MySqlDataSource('meu-datasource');
+
+const pedidos = await mysql.execute('pedidos-por-periodo', {
+  variables: {
+    dataInicio: '2024-01-01',
+    dataFim: '2024-12-31'
+  }
+});
+```
+</CodeGroup>
+
+### command()
+
+Executa múltiplos comandos SQL em sequência.
+
+```typescript
+command(requestBody: Array<MySQLCommand>): Promise<MySQLMultiCommandResponse>
+```
+
+```typescript
+import { MySqlDataSource, MySQLCommand, MySQLCredential } from '@kruzer/idk';
+
+const mysql = new MySqlDataSource('meu-datasource');
+
+const credential: MySQLCredential = {
+  user: 'usuario',
+  password: 'senha',
+  host: 'localhost',
+  port: 3306,
+  database: 'meu_banco',
+  idleTimeout: 30000
+};
+
+const comandos: MySQLCommand[] = [
+  { credential, query: 'INSERT INTO logs (mensagem) VALUES ("Inicio")' },
+  { credential, query: 'UPDATE config SET valor = "novo" WHERE chave = "status"' }
+];
+
+const resultado = await mysql.command(comandos);
+// resultado.results - Array com resultados de cada comando
+// resultado.errors - Array com erros (se houver)
+```
+
+### multiInsert()
+
+Executa múltiplos INSERTs de forma otimizada.
+
+```typescript
+multiInsert(requestBody: MySQLMultiInsert): Promise<MySQLMultiCommandResponse>
+```
+
+```typescript
+import { MySqlDataSource, MySQLMultiInsert, MySQLCredential } from '@kruzer/idk';
+
+const mysql = new MySqlDataSource('meu-datasource');
+
+const credential: MySQLCredential = {
+  user: 'usuario',
+  password: 'senha',
+  host: 'localhost',
+  port: 3306,
+  database: 'meu_banco',
+  idleTimeout: 30000
+};
+
+const inserts: MySQLMultiInsert = {
+  credential,
+  showExecutionTime: true,
+  commands: [
+    'INSERT INTO produtos (nome, preco) VALUES ("Produto A", 10.00)',
+    'INSERT INTO produtos (nome, preco) VALUES ("Produto B", 20.00)',
+    'INSERT INTO produtos (nome, preco) VALUES ("Produto C", 30.00)'
+  ]
+};
+
+const resultado = await mysql.multiInsert(inserts);
+```
+
+### ping()
+
+Verifica a conectividade com o banco de dados.
+
+```typescript
+ping(requestBody: MySQLPing): Promise<boolean>
+```
+
+```typescript
+import { MySqlDataSource, MySQLCredential } from '@kruzer/idk';
+
+const mysql = new MySqlDataSource('meu-datasource');
+
+const credential: MySQLCredential = {
+  user: 'usuario',
+  password: 'senha',
+  host: 'localhost',
+  port: 3306,
+  database: 'meu_banco',
+  idleTimeout: 30000
+};
+
+const conectado = await mysql.ping({ credential });
+console.log(conectado ? 'Conectado!' : 'Falha na conexão');
+```
+
+## Interfaces
+
+```typescript
+interface MySQLOptions {
+  variables?: any;
+}
+
+interface MySQLCredential {
+  user: string;
+  password: string;
+  port: number;
+  host: string;
+  database: string;
+  idleTimeout: number;
+  dateStrings?: boolean;
+}
+
+interface MySQLCommand {
+  credential: MySQLCredential;
+  query: string;
+}
+
+interface MySQLMultiInsert {
+  credential: MySQLCredential;
+  showExecutionTime?: boolean;
+  commands: string[] | MySQLIdentifiedCommand[];
+}
+
+interface MySQLIdentifiedCommand {
+  commandId: string;
+  command: string;
+}
+
+interface MySQLMultiCommandResponse {
+  results: any[];
+  errors: any[];
+}
+```

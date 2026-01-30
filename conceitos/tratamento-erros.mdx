@@ -1,0 +1,148 @@
+---
+title: "Tratamento de Erros"
+description: "Como tratar erros ao usar os data sources do IDK"
+icon: "triangle-exclamation"
+---
+
+Todos os data sources podem lançar exceções em caso de falha. É recomendado sempre utilizar `try/catch` para tratamento adequado.
+
+## Padrão Básico
+
+```typescript
+import { MySqlDataSource } from '@kruzer/idk';
+
+const mysql = new MySqlDataSource('meu-datasource');
+
+try {
+  const resultado = await mysql.query('SELECT * FROM tabela_inexistente');
+  console.log(resultado);
+} catch (error) {
+  console.error('Erro ao executar query:', error.message);
+  // Trate o erro apropriadamente
+}
+```
+
+## Tratamento por Data Source
+
+### MySQL
+
+```typescript
+import { MySqlDataSource } from '@kruzer/idk';
+
+const mysql = new MySqlDataSource('meu-datasource');
+
+try {
+  const resultado = await mysql.query('SELECT * FROM usuarios');
+  return resultado;
+} catch (error) {
+  if (error.code === 'ER_NO_SUCH_TABLE') {
+    console.error('Tabela não existe');
+  } else if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+    console.error('Acesso negado ao banco de dados');
+  } else {
+    console.error('Erro MySQL:', error.message);
+  }
+  throw error;
+}
+```
+
+### MongoDB
+
+```typescript
+import { MongoDbDataSource } from '@kruzer/idk';
+
+const mongo = new MongoDbDataSource('meu-datasource');
+
+try {
+  const docs = await mongo.command('buscar-documentos');
+  return docs;
+} catch (error) {
+  // MongoDbDataSource retorna mensagem de erro formatada
+  console.error('Erro MongoDB:', error.message);
+  throw error;
+}
+```
+
+### REST API
+
+```typescript
+import { RestDataSource } from '@kruzer/idk';
+
+const rest = new RestDataSource('api-externa');
+
+try {
+  const dados = await rest.request('buscar-dados');
+  return dados;
+} catch (error) {
+  if (error.status === 404) {
+    console.error('Recurso não encontrado');
+  } else if (error.status === 401) {
+    console.error('Não autorizado');
+  } else if (error.status >= 500) {
+    console.error('Erro no servidor externo');
+  }
+  throw error;
+}
+```
+
+## Uso com KrzLogger
+
+Combine o tratamento de erros com logging estruturado:
+
+```typescript
+import { MySqlDataSource, KrzLogger } from '@kruzer/idk';
+
+const logger = new KrzLogger('info', 'minha-api');
+const mysql = new MySqlDataSource('meu-datasource');
+
+async function buscarUsuario(id: number) {
+  logger.info('Buscando usuário', { id });
+
+  try {
+    const usuario = await mysql.query(
+      'SELECT * FROM usuarios WHERE id = :id',
+      { variables: { id } }
+    );
+
+    if (!usuario) {
+      logger.warn('Usuário não encontrado', { id });
+      return null;
+    }
+
+    logger.info('Usuário encontrado', { id, nome: usuario.nome });
+    return usuario;
+
+  } catch (error) {
+    logger.error('Erro ao buscar usuário', {
+      id,
+      erro: error.message,
+      stack: error.stack
+    });
+    throw error;
+  }
+}
+```
+
+## Boas Práticas
+
+<AccordionGroup>
+  <Accordion title="Sempre use try/catch">
+    Todas as operações de data source são assíncronas e podem falhar. Sempre envolva as chamadas em blocos try/catch.
+  </Accordion>
+
+  <Accordion title="Registre erros com contexto">
+    Use o KrzLogger para registrar erros com informações de contexto que ajudem no debugging.
+  </Accordion>
+
+  <Accordion title="Não exponha detalhes internos">
+    Em APIs públicas, não retorne mensagens de erro internas. Use mensagens genéricas para o cliente e registre os detalhes internamente.
+  </Accordion>
+
+  <Accordion title="Implemente retry para erros transitórios">
+    Para erros de rede ou timeouts, considere implementar lógica de retry com backoff exponencial.
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Nunca ignore exceções silenciosamente. Sempre registre ou trate os erros de forma apropriada para facilitar a depuração em produção.
+</Warning>

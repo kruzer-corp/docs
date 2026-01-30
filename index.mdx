@@ -1,97 +1,84 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Bem-vindo ao iPaaS Kruzer"
+description: "Ambiente robusto e escalável para conectar, orquestrar e automatizar integrações entre sistemas"
+icon: "rocket"
 ---
 
-## Setting up
+O **iPaaS Kruzer** é um ambiente robusto e escalável para conectar, orquestrar e automatizar integrações entre sistemas internos e externos. Ele abstrai a complexidade da comunicação entre APIs, bancos de dados, filas e serviços, permitindo que engenheiros construam fluxos complexos com agilidade.
 
-Get your documentation site up and running in minutes.
+## O que você pode fazer
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Conectar Sistemas" icon="link">
+    Integre ERPs, CRMs, APIs, bancos de dados e serviços externos em um único fluxo
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Automatizar Processos" icon="gears">
+    Crie automações que executam tarefas repetitivas de forma confiável e escalável
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Transformar Dados" icon="shuffle">
+    Converta dados entre formatos diferentes, aplicando regras de negócio
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Monitorar Integrações" icon="chart-line">
+    Acompanhe execuções, trate erros e aplique retries automaticamente
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Exemplo Prático
 
-Everything you need to create world-class documentation.
+Imagine sincronizar dados de estoque entre um ERP e uma plataforma de e-commerce. Com o iPaaS Kruzer, você pode criar um fluxo que:
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+1. **Captura** atualizações de estoque do ERP via webhook
+2. **Transforma** os dados para o formato esperado pela API do e-commerce
+3. **Envia** as atualizações automaticamente, tratando erros e aplicando retries
 
-## Need inspiration?
+```typescript
+import { MySqlDataSource, RestDataSource, KrzLogger } from '@kruzer/idk';
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+const logger = new KrzLogger('info', 'sync-estoque');
+const erp = new MySqlDataSource('erp-database');
+const ecommerce = new RestDataSource('ecommerce-api');
+
+export default async function run() {
+  // Busca produtos atualizados no ERP
+  const produtos = await erp.query(
+    'SELECT sku, quantidade FROM estoque WHERE atualizado_em > :data',
+    { data: { val: '2024-01-01' } }
+  );
+
+  // Envia para o e-commerce
+  for (const produto of produtos) {
+    await ecommerce.request('PUT', `/products/${produto.sku}/stock`, {
+      body: { quantity: produto.quantidade }
+    });
+  }
+
+  logger.info('Sincronização concluída', { total: produtos.length });
+}
+```
+
+## Ferramentas para Desenvolvedores
+
+O ecossistema Kruzer oferece duas ferramentas principais para construir e executar suas automações:
+
+<CardGroup cols={2}>
+  <Card title="Kruzer CLI" icon="terminal" href="/cli-overview">
+    Ferramenta de linha de comando para configurar, autenticar e executar automações localmente
+  </Card>
+  <Card title="Kruzer IDK" icon="code" href="/instalacao">
+    SDK TypeScript com conectores para bancos de dados, APIs e serviços externos
+  </Card>
+</CardGroup>
+
+## Comece Agora
+
+<CardGroup cols={3}>
+  <Card title="CLI Overview" icon="terminal" href="/cli-overview">
+    Entenda como funciona a CLI
+  </Card>
+  <Card title="Quick Start" icon="bolt" href="/quickstart">
+    Crie sua primeira automação
+  </Card>
+  <Card title="Instalação do IDK" icon="download" href="/instalacao">
+    Configure o SDK no seu projeto
+  </Card>
+</CardGroup>

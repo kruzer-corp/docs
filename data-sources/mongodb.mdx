@@ -1,0 +1,88 @@
+---
+title: "MongoDB"
+description: "Conecte-se a bancos MongoDB com o MongoDbDataSource"
+icon: "leaf"
+---
+
+O `MongoDbDataSource` permite executar comandos em bancos MongoDB.
+
+## Importação
+
+```typescript
+import { MongoDbDataSource } from '@kruzer/idk';
+```
+
+## Construtor
+
+```typescript
+const mongo = new MongoDbDataSource(name: string, options?: MongoDbOptions, tenant?: string);
+```
+
+<ResponseField name="name" type="string" required>
+  Nome do data source configurado no iPaaS
+</ResponseField>
+
+<ResponseField name="options" type="MongoDbOptions">
+  Opções padrão para todas as requisições
+</ResponseField>
+
+<ResponseField name="tenant" type="string">
+  Identificador do tenant
+</ResponseField>
+
+## Métodos
+
+### command()
+
+Executa um comando pré-configurado no iPaaS através do seu alias.
+
+```typescript
+command(alias: string, options?: any): Promise<any>
+```
+
+<CodeGroup>
+```typescript Comando Simples
+const mongo = new MongoDbDataSource('meu-datasource');
+
+const documentos = await mongo.command('buscar-usuarios-ativos');
+```
+
+```typescript Comando com Filtros
+const mongo = new MongoDbDataSource('meu-datasource');
+
+const pedidos = await mongo.command('buscar-pedidos', {
+  options: {
+    filter: { status: 'pendente' },
+    limit: 50,
+    sort: { createdAt: -1 }
+  }
+});
+```
+
+```typescript Comando com Agregação
+const mongo = new MongoDbDataSource('meu-datasource');
+
+const relatorio = await mongo.command('agregacao-vendas-mensal', {
+  options: {
+    pipeline: [
+      { $match: { ano: 2024 } },
+      { $group: { _id: '$mes', total: { $sum: '$valor' } } }
+    ]
+  }
+});
+```
+</CodeGroup>
+
+## Interface
+
+```typescript
+interface MongoDbOptions {
+  options?: {
+    [key: string]: any;
+  };
+}
+```
+
+<Tip>
+  Os comandos MongoDB são pré-configurados no iPaaS Kruzer. Use o `options` para passar filtros, ordenações e pipelines de agregação dinâmicos.
+</Tip>

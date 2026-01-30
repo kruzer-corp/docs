@@ -1,0 +1,80 @@
+---
+title: "Instalação"
+description: "Como instalar e configurar o @kruzer/idk em seu projeto"
+icon: "download"
+---
+
+## Instalação
+
+Instale o SDK via npm:
+
+```bash
+npm install @kruzer/idk
+```
+
+Ou usando yarn:
+
+```bash
+yarn add @kruzer/idk
+```
+
+## Requisitos
+
+- Node.js 16 ou superior
+- TypeScript 4.5+ (recomendado)
+- Data sources configurados no iPaaS Kruzer
+
+## Configuração Básica
+
+Após a instalação, você pode importar os módulos necessários:
+
+```typescript
+import {
+  MySqlDataSource,
+  MsSqlDataSource,
+  OracleDataSource,
+  MongoDbDataSource,
+  RestDataSource,
+  SapRFCDatasource,
+  KrzLogger
+} from '@kruzer/idk';
+```
+
+## Uso Inicial
+
+### 1. Configure um Data Source
+
+Primeiro, certifique-se de que o data source está configurado no iPaaS Kruzer com um nome identificador.
+
+### 2. Crie uma instância
+
+```typescript
+const mysql = new MySqlDataSource('nome-do-datasource');
+```
+
+### 3. Execute operações
+
+```typescript
+const resultado = await mysql.query('SELECT * FROM usuarios');
+```
+
+<Tip>
+  O nome do data source (`'nome-do-datasource'`) deve corresponder exatamente ao nome configurado no painel do iPaaS Kruzer.
+</Tip>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="MySQL" icon="database" href="/data-sources/mysql">
+    Aprenda a usar o MySqlDataSource
+  </Card>
+  <Card title="SQL Server" icon="database" href="/data-sources/mssql">
+    Aprenda a usar o MsSqlDataSource
+  </Card>
+  <Card title="REST API" icon="globe" href="/integracoes/rest-api">
+    Integre com APIs externas
+  </Card>
+  <Card title="Logger" icon="scroll" href="/utilitarios/krzlogger">
+    Configure logging estruturado
+  </Card>
+</CardGroup>

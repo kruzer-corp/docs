@@ -1,80 +1,192 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick Start"
+description: "Crie sua primeira automação de sincronização de dados em poucos minutos"
+icon: "bolt"
 ---
 
-## Get started in three steps
+Neste guia, você vai criar uma automação que sincroniza dados de clientes entre um banco de dados MySQL e uma API externa. Ao final, você terá um projeto funcional pronto para expandir.
 
-Get your documentation site running locally and make your first customization.
+## Pré-requisitos
 
-### Step 1: Set up your local environment
+- Node.js 16 ou superior
+- Acesso ao iPaaS Kruzer com credenciais válidas
+- Data sources configurados no painel do iPaaS (MySQL e REST API)
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+## 1. Configure a CLI
 
-### Step 2: Deploy your changes
+Primeiro, instale a CLI globalmente e configure a conexão com o iPaaS:
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+```bash
+# Instale a CLI
+npm install -g @kruzer/cli
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+# Configure a conexão
+krz configure
+```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Quando solicitado, informe o host do iPaaS (ex: `https://app.kruzer.io`).
 
-### Step 3: Go live
+```bash
+# Faça login com suas credenciais
+krz login
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+# Selecione o tenant de desenvolvimento
+krz select tenant
+```
 
-## Next steps
+<Tip>
+  A CLI armazena suas credenciais localmente em `~/.config/configstore/krz-cli.json` para renovação automática do token.
+</Tip>
 
-Now that you have your docs running, explore these key features:
+## 2. Crie o Projeto na Plataforma
+
+Acesse a plataforma Kruzer e crie um novo repositório em **Repositories**:
+
+1. Clique em **Novo Repositório**
+2. Informe o nome do projeto (ex: `minha-automacao`)
+3. Confirme a criação
+
+O iPaaS Kruzer provisiona automaticamente um repositório no seu GitHub com o template padrão já configurado, incluindo:
+- Estrutura de pastas (`automations/`, `functions/`, `data-transformations/`)
+- Configuração do TypeScript (`tsconfig.json`)
+- Dependências do projeto (`package.json` com `@kruzer/idk`)
+
+Após a criação, clone o repositório e instale as dependências:
+
+```bash
+# Clone o repositório criado
+git clone https://github.com/seu-usuario/minha-automacao.git
+cd minha-automacao
+
+# Instale as dependências
+npm install
+```
+
+## 3. Crie a Automação
+
+Crie o arquivo `automations/sync-clientes.ts`:
+
+```typescript
+import { MySqlDataSource, RestDataSource, KrzLogger } from '@kruzer/idk';
+
+// Inicializa os conectores
+const logger = new KrzLogger('info', 'sync-clientes');
+const mysql = new MySqlDataSource('meu-banco-mysql');
+const api = new RestDataSource('minha-api-externa');
+
+// Interface para tipagem
+interface Cliente {
+  id: number;
+  nome: string;
+  email: string;
+  atualizado_em: string;
+}
+
+// Função principal da automação
+export default async function run(params: { dataInicio?: string }) {
+  const dataInicio = params.dataInicio || '2024-01-01';
+
+  logger.info('Iniciando sincronização de clientes', { dataInicio });
+
+  try {
+    // 1. Busca clientes atualizados no MySQL
+    const clientes = await mysql.query<Cliente>(
+      'SELECT id, nome, email, atualizado_em FROM clientes WHERE atualizado_em >= :data',
+      { data: { val: dataInicio } }
+    );
+
+    logger.info('Clientes encontrados', { total: clientes.length });
+
+    // 2. Sincroniza cada cliente com a API externa
+    let sucesso = 0;
+    let erros = 0;
+
+    for (const cliente of clientes) {
+      try {
+        await api.request('PUT', `/customers/${cliente.id}`, {
+          body: {
+            name: cliente.nome,
+            email: cliente.email,
+            updatedAt: cliente.atualizado_em
+          }
+        });
+        sucesso++;
+      } catch (error) {
+        logger.error('Erro ao sincronizar cliente', {
+          clienteId: cliente.id,
+          erro: error
+        });
+        erros++;
+      }
+    }
+
+    // 3. Log do resultado final
+    logger.info('Sincronização concluída', { sucesso, erros });
+
+    return { sucesso, erros, total: clientes.length };
+
+  } catch (error) {
+    logger.error('Erro fatal na sincronização', { erro: error });
+    throw error;
+  }
+}
+```
+
+## 4. Execute a Automação
+
+Compile e execute sua automação:
+
+```bash
+# Compile o TypeScript
+npx tsc
+
+# Execute a automação
+krz run sync-clientes
+```
+
+### Passando Parâmetros
+
+Crie um arquivo `params.json` para customizar a execução:
+
+```json
+{
+  "dataInicio": "2024-06-01"
+}
+```
+
+Execute com os parâmetros:
+
+```bash
+krz run sync-clientes -p ./params.json
+```
+
+## 5. Estrutura Final do Projeto
+
+```
+minha-automacao/
+├── automations/
+│   └── sync-clientes.ts      # Código fonte
+├── build/
+│   └── automations/
+│       └── sync-clientes.js  # Código compilado
+├── params.json               # Parâmetros (opcional)
+├── package.json
+└── tsconfig.json
+```
+
+## Próximos Passos
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="MySQL" icon="database" href="/data-sources/mysql">
+    Explore queries avançadas e transações
+  </Card>
+  <Card title="REST API" icon="globe" href="/integracoes/rest-api">
+    Configure headers, autenticação e retries
+  </Card>
+  <Card title="Tratamento de Erros" icon="triangle-exclamation" href="/conceitos/tratamento-erros">
+    Implemente tratamento robusto de erros
+  </Card>
+  <Card title="Logger" icon="scroll" href="/utilitarios/logger">
+    Configure logging estruturado
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

@@ -1,0 +1,111 @@
+---
+title: "Repositories"
+description: "Repositórios de código versionados para suas automações"
+icon: "code-branch"
+---
+
+Na plataforma Kruzer, **Repositories** correspondem a repositórios de código-fonte versionados. Ao criar um novo repositório, é automaticamente provisionado um repositório no GitHub baseado em um template padrão, que estabelece a estrutura e organização recomendadas para desenvolvimento na plataforma.
+
+## Estrutura do Repositório
+
+O template padrão disponibiliza uma aplicação Node.js organizada nas seguintes pastas principais:
+
+```
+meu-repositorio/
+├── automations/          # Triggers e endpoints de gateways
+├── functions/            # Funções reutilizáveis
+├── data-transformations/ # Scripts de transformação de dados
+├── package.json
+└── tsconfig.json
+```
+
+### automations/
+
+Contém os arquivos responsáveis pela definição de **triggers** e **endpoints de gateways**. Esta estrutura é mandatória para que os motores de execução do iPaaS interpretem corretamente as integrações.
+
+<CodeGroup>
+```typescript Trigger Agendado
+// automations/sync-diario.ts
+export default async function run(params: any) {
+  // Executado conforme agendamento configurado
+  console.log('Sincronização diária iniciada');
+}
+```
+
+```typescript Webhook
+// automations/webhook-pedidos.ts
+export default async function run(params: any) {
+  // Executado quando a URL do webhook é chamada
+  const { payload } = params;
+  console.log('Webhook recebido:', payload);
+}
+```
+</CodeGroup>
+
+### functions/
+
+Diretório destinado a funções genéricas e reutilizáveis que podem ser invocadas pelas automações.
+
+```typescript
+// functions/validar-cpf.ts
+export function validarCPF(cpf: string): boolean {
+  // Lógica de validação
+  return true;
+}
+```
+
+### data-transformations/
+
+Scripts e utilitários para transformação, validação e manipulação de dados entre diferentes formatos e sistemas.
+
+```typescript
+// data-transformations/pedido-erp-to-ecommerce.ts
+export function transformarPedido(pedidoERP: any) {
+  return {
+    orderId: pedidoERP.numero,
+    customerName: pedidoERP.cliente.nome,
+    items: pedidoERP.itens.map((item: any) => ({
+      sku: item.codigo,
+      quantity: item.quantidade
+    }))
+  };
+}
+```
+
+## Flexibilidade e Conformidade
+
+<Note>
+  Embora a estrutura padrão seja recomendada, você tem liberdade para adicionar novas pastas e organizar o código conforme as necessidades do repositório.
+</Note>
+
+<Warning>
+  Os arquivos em `automations/` devem seguir o padrão estabelecido (exportar uma função `run` como default) para garantir o correto funcionamento pelos motores de execução.
+</Warning>
+
+## Benefícios da Padronização
+
+<CardGroup cols={2}>
+  <Card title="Manutenção" icon="wrench">
+    Facilidade na manutenção e escalabilidade do código
+  </Card>
+  <Card title="Versionamento" icon="code-branch">
+    Consistência no versionamento e deploy via GitHub
+  </Card>
+  <Card title="Integração" icon="plug">
+    Integração transparente com os mecanismos de execução
+  </Card>
+  <Card title="Monitoramento" icon="chart-line">
+    Logs e métricas integrados automaticamente
+  </Card>
+</CardGroup>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Triggers" icon="bolt" href="/plataforma/triggers">
+    Configure gatilhos para suas automações
+  </Card>
+  <Card title="Conectores" icon="plug" href="/plataforma/conectores">
+    Conecte sistemas externos
+  </Card>
+</CardGroup>

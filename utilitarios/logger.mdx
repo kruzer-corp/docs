@@ -1,0 +1,196 @@
+---
+title: "Logger"
+description: "Logging estruturado com integração OpenTelemetry"
+icon: "scroll"
+---
+
+O **Logger** da Kruzer (`KrzLogger`) é um utilitário de logging baseado em Winston com integração ao OpenTelemetry para distributed tracing. Os logs são emitidos em formato JSON estruturado, incluindo automaticamente o `trace-id` quando disponível.
+
+## Importação
+
+```typescript
+import { KrzLogger } from '@kruzer/idk';
+```
+
+## Construtor
+
+```typescript
+const logger = new KrzLogger(level?: string, service?: string);
+```
+
+<ResponseField name="level" type="string" default="info">
+  Nível mínimo de log (debug, info, warn, error)
+</ResponseField>
+
+<ResponseField name="service" type="string">
+  Nome do serviço para identificação nos logs
+</ResponseField>
+
+## Métodos
+
+### info()
+
+Registra uma mensagem de nível informativo.
+
+```typescript
+info(message: string, data?: object): void
+```
+
+```typescript
+const logger = new KrzLogger('info', 'meu-servico');
+
+// Log simples
+logger.info('Aplicação iniciada');
+
+// Log com dados adicionais
+logger.info('Usuário autenticado', {
+  userId: 123,
+  email: 'usuario@exemplo.com'
+});
+```
+
+### error()
+
+Registra uma mensagem de erro.
+
+```typescript
+error(message: string, data?: object): void
+```
+
+```typescript
+const logger = new KrzLogger('info', 'meu-servico');
+
+// Log de erro simples
+logger.error('Falha ao conectar no banco de dados');
+
+// Log de erro com detalhes
+logger.error('Erro ao processar pedido', {
+  pedidoId: 456,
+  erro: 'Produto não encontrado',
+  stack: error.stack
+});
+```
+
+### warn()
+
+Registra uma mensagem de alerta.
+
+```typescript
+warn(message: string, data?: object): void
+```
+
+```typescript
+const logger = new KrzLogger('info', 'meu-servico');
+
+// Log de warning
+logger.warn('Taxa de requisições alta', {
+  requestsPerMinute: 150,
+  threshold: 100
+});
+
+// Alerta de deprecação
+logger.warn('Método descontinuado', {
+  metodo: 'getUsers',
+  alternativa: 'fetchUsers'
+});
+```
+
+### debug()
+
+Registra uma mensagem de debug (apenas visível quando level='debug').
+
+```typescript
+debug(message: string, data?: object): void
+```
+
+```typescript
+const logger = new KrzLogger('debug', 'meu-servico');
+
+// Log de debug
+logger.debug('Payload recebido', {
+  body: requestBody,
+  headers: requestHeaders
+});
+
+// Debug de fluxo
+logger.debug('Iniciando processamento', {
+  step: 1,
+  totalSteps: 5
+});
+```
+
+## Formato de Saída
+
+Os logs são emitidos em formato JSON estruturado:
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "severity": "info",
+  "message": "Usuário autenticado",
+  "metadata": {
+    "service": "meu-servico",
+    "trace-id": "abc123def456..."
+  },
+  "data": {
+    "userId": 123,
+    "email": "usuario@exemplo.com"
+  }
+}
+```
+
+## Níveis de Log
+
+| Nível | Uso |
+|-------|-----|
+| `error` | Erros que impedem o funcionamento correto |
+| `warn` | Situações anormais que não impedem o funcionamento |
+| `info` | Informações relevantes sobre o fluxo da aplicação |
+| `debug` | Informações detalhadas para debugging |
+
+## Exemplo Completo
+
+```typescript
+import { KrzLogger, MySqlDataSource } from '@kruzer/idk';
+
+const logger = new KrzLogger('info', 'api-pedidos');
+const mysql = new MySqlDataSource('banco-principal');
+
+async function processarPedido(pedidoId: number) {
+  logger.info('Iniciando processamento de pedido', { pedidoId });
+
+  try {
+    const pedido = await mysql.query(
+      'SELECT * FROM pedidos WHERE id = :id',
+      { variables: { id: pedidoId } }
+    );
+
+    if (!pedido) {
+      logger.warn('Pedido não encontrado', { pedidoId });
+      return null;
+    }
+
+    logger.debug('Dados do pedido recuperados', { pedido });
+
+    // ... processamento ...
+
+    logger.info('Pedido processado com sucesso', {
+      pedidoId,
+      status: 'concluido'
+    });
+
+    return pedido;
+  } catch (error) {
+    logger.error('Erro ao processar pedido', {
+      pedidoId,
+      erro: error.message,
+      stack: error.stack
+    });
+    throw error;
+  }
+}
+```
+
+<Tip>
+  Use o nível `debug` durante o desenvolvimento e `info` em produção. O `trace-id` é automaticamente incluído quando há um contexto OpenTelemetry ativo, facilitando o rastreamento de requisições distribuídas.
+</Tip>
