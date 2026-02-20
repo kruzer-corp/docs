@@ -1,0 +1,56 @@
+---
+title: "Acessos"
+description: "Gere credenciais para que tenants consumam as APIs do seu gateway"
+icon: "key"
+---
+
+**Acessos** são credenciais geradas pela plataforma para que um tenant consuma a API de um ambiente. Cada acesso é vinculado a um tenant específico e segue o tipo de autenticação configurado no ambiente.
+
+## Como funciona
+
+A plataforma gera as credenciais automaticamente — você não precisa definir senhas ou chaves manualmente. O tipo de credencial é determinado pelo método de autenticação do ambiente:
+
+| Autenticação do Ambiente | Tipo de Acesso gerado |
+|--------------------------|----------------------|
+| Basic Auth | Usuário e senha codificados em Base64 |
+| API Key | Chave única gerada pela plataforma |
+| OAuth2 | Client ID e Client Secret para fluxo OAuth2 |
+
+<Note>
+  Ambientes sem autenticação não utilizam Acessos — qualquer cliente pode fazer requisições sem credenciais.
+</Note>
+
+---
+
+## Copiando a credencial
+
+Após criar o acesso, a credencial gerada pode ser copiada diretamente da lista de acessos do ambiente. Compartilhe com o tenant responsável pela integração.
+
+---
+
+## Removendo um Acesso
+
+Para remover um acesso, use a opção **Apagar** no menu de ações do acesso desejado. A remoção é imediata — o tenant perde o acesso assim que a credencial é deletada.
+
+<Warning>
+  Se você alterar o tipo de autenticação do ambiente, **todos os acessos existentes são removidos automaticamente**. Será necessário criar novos acessos compatíveis com o novo método.
+</Warning>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Ambientes" icon="layer-group" href="/api-gateway/ambientes">
+    Configure autenticação e endpoints por ambiente
+  </Card>
+  <Card title="Policies" icon="shield-halved" href="/api-gateway/policies">
+    Aplique limites e regras de acesso por IP
+  </Card>
+  <Card title="Tenants" icon="users" href="/plataforma/tenants">
+    Gerencie os tenants que consomem suas APIs
+  </Card>
+  <Card title="Publicação" icon="rocket" href="/api-gateway/publicacao">
+    Publique e coloque a API no ar
+  </Card>
+</CardGroup>
