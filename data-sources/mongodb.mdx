@@ -34,55 +34,107 @@ const mongo = new MongoDbDataSource(name: string, options?: MongoDbOptions, tena
 
 ### command()
 
-Executa um comando pré-configurado no iPaaS através do seu alias.
+Executa um resource configurado no conector MongoDB da Kruzer. O `alias` identifica o resource, e é nele que a operação (`find`, `insertOne`, `insertMany`, `aggregate`, `updateOne`, `updateMany`) é definida — não no código.
 
 ```typescript
-command(alias: string, options?: any): Promise<any>
+command(alias: string, options?: MongoDbOptions): Promise<any>
 ```
 
+Os campos passados no segundo parâmetro (`query`, `document`, `documents`, `pipeline`) variam de acordo com a operação definida no resource.
+
 <CodeGroup>
-```typescript Comando Simples
+```typescript Simples (sem parâmetros)
 const mongo = new MongoDbDataSource('meu-datasource');
 
 const documentos = await mongo.command('buscar-usuarios-ativos');
 ```
 
-```typescript Comando com Filtros
+```typescript find
 const mongo = new MongoDbDataSource('meu-datasource');
 
 const pedidos = await mongo.command('buscar-pedidos', {
+  query: { status: 'pendente' },
   options: {
-    filter: { status: 'pendente' },
-    limit: 50,
-    sort: { createdAt: -1 }
+    sort: { createdAt: -1 },
+    projection: { _id: 1, status: 1, total: 1 }
   }
 });
 ```
 
-```typescript Comando com Agregação
+```typescript insertOne
+const mongo = new MongoDbDataSource('meu-datasource');
+
+await mongo.command('criar-usuario', {
+  document: {
+    nome: 'João Silva',
+    email: 'joao@exemplo.com',
+    ativo: true
+  }
+});
+```
+
+```typescript insertMany
+const mongo = new MongoDbDataSource('meu-datasource');
+
+await mongo.command('importar-produtos', {
+  documents: [
+    { nome: 'Produto A', preco: 10.00 },
+    { nome: 'Produto B', preco: 20.00 },
+    { nome: 'Produto C', preco: 30.00 }
+  ]
+});
+```
+
+```typescript aggregate
 const mongo = new MongoDbDataSource('meu-datasource');
 
 const relatorio = await mongo.command('agregacao-vendas-mensal', {
-  options: {
-    pipeline: [
-      { $match: { ano: 2024 } },
-      { $group: { _id: '$mes', total: { $sum: '$valor' } } }
-    ]
-  }
+  pipeline: [
+    { $match: { ano: 2024 } },
+    { $group: { _id: '$mes', total: { $sum: '$valor' } } }
+  ]
+});
+```
+
+```typescript updateOne
+const mongo = new MongoDbDataSource('meu-datasource');
+
+await mongo.command('atualizar-usuario', {
+  query: { _id: '507f1f77bcf86cd799439011' },
+  document: { nome: 'João Atualizado', email: 'novo@exemplo.com' }
+});
+```
+
+```typescript updateMany
+const mongo = new MongoDbDataSource('meu-datasource');
+
+await mongo.command('inativar-usuarios', {
+  query: { ultimoAcesso: { $lt: '2023-01-01' } },
+  document: { ativo: false }
 });
 ```
 </CodeGroup>
+
+<Note>
+  Nos comandos de update (`updateOne` e `updateMany`), o campo `document` recebe apenas os campos a serem alterados. O `$set` é aplicado automaticamente pela API.
+</Note>
 
 ## Interface
 
 ```typescript
 interface MongoDbOptions {
   options?: {
+    sort?: { [key: string]: 1 | -1 };
+    projection?: { [key: string]: 0 | 1 };
     [key: string]: any;
   };
+  query?: { [key: string]: any };
+  document?: { [key: string]: any };
+  documents?: { [key: string]: any }[];
+  pipeline?: { [key: string]: any }[];
 }
 ```
 
 <Tip>
-  Os comandos MongoDB são pré-configurados no iPaaS Kruzer. Use o `options` para passar filtros, ordenações e pipelines de agregação dinâmicos.
+  O tipo de operação é definido no resource do conector MongoDB na Kruzer, não no código. Use o `alias` correspondente ao resource desejado e passe os campos corretos (`query`, `document`, `documents` ou `pipeline`) conforme a operação configurada nele.
 </Tip>
