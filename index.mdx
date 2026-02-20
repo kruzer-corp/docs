@@ -1,84 +1,86 @@
 ---
-title: "Bem-vindo ao iPaaS Kruzer"
-description: "Ambiente robusto e escalável para conectar, orquestrar e automatizar integrações entre sistemas"
+title: "Bem-vindo ao Kruzer DevTools"
+description: "Plataforma completa para integrar sistemas e expor APIs ao mercado"
 icon: "rocket"
 ---
 
-O **iPaaS Kruzer** é um ambiente robusto e escalável para conectar, orquestrar e automatizar integrações entre sistemas internos e externos. Ele abstrai a complexidade da comunicação entre APIs, bancos de dados, filas e serviços, permitindo que engenheiros construam fluxos complexos com agilidade.
+O **Kruzer DevTools** é a plataforma de desenvolvimento da Kruzer. Com ela, times de engenharia conectam sistemas, automatizam processos e disponibilizam APIs ao mercado — tudo em um único lugar.
 
-## O que você pode fazer
+## O que a plataforma oferece
 
 <CardGroup cols={2}>
-  <Card title="Conectar Sistemas" icon="link">
-    Integre ERPs, CRMs, APIs, bancos de dados e serviços externos em um único fluxo
+  <Card title="iPaaS" icon="gears">
+    Automatize integrações entre sistemas internos e externos. Conecte ERPs, CRMs, bancos de dados, filas e APIs com automações em TypeScript executadas por Triggers e Consumers.
   </Card>
-  <Card title="Automatizar Processos" icon="gears">
-    Crie automações que executam tarefas repetitivas de forma confiável e escalável
-  </Card>
-  <Card title="Transformar Dados" icon="shuffle">
-    Converta dados entre formatos diferentes, aplicando regras de negócio
-  </Card>
-  <Card title="Monitorar Integrações" icon="chart-line">
-    Acompanhe execuções, trate erros e aplique retries automaticamente
+  <Card title="API Gateway" icon="shield">
+    Exponha suas integrações como APIs ao mercado. Controle versões, configure ambientes independentes e aplique políticas de segurança e performance.
   </Card>
 </CardGroup>
 
-## Exemplo Prático
+---
 
-Imagine sincronizar dados de estoque entre um ERP e uma plataforma de e-commerce. Com o iPaaS Kruzer, você pode criar um fluxo que:
+## Configurações compartilhadas
 
-1. **Captura** atualizações de estoque do ERP via webhook
-2. **Transforma** os dados para o formato esperado pela API do e-commerce
-3. **Envia** as atualizações automaticamente, tratando erros e aplicando retries
+Ambos os produtos compartilham a mesma base de configuração da plataforma:
 
-```typescript
-import { MySqlDataSource, RestDataSource, KrzLogger } from '@kruzer/idk';
+<CardGroup cols={2}>
+  <Card title="Tenants" icon="users" href="/plataforma/tenants">
+    Isolamento multi-tenant para suas integrações e APIs
+  </Card>
+  <Card title="Repositórios" icon="code-branch" href="/plataforma/repositories">
+    Código das automações organizado por projeto
+  </Card>
+  <Card title="Conectores" icon="plug" href="/plataforma/conectores">
+    Conexões com APIs REST, bancos de dados e serviços externos
+  </Card>
+  <Card title="Credenciais" icon="key" href="/plataforma/credentials">
+    Credenciais de acesso por tenant, vinculadas a conectores
+  </Card>
+</CardGroup>
 
-const logger = new KrzLogger('info', 'sync-estoque');
-const erp = new MySqlDataSource('erp-database');
-const ecommerce = new RestDataSource('ecommerce-api');
+---
 
-export default async function run() {
-  // Busca produtos atualizados no ERP
-  const produtos = await erp.query(
-    'SELECT sku, quantidade FROM estoque WHERE atualizado_em > :data',
-    { data: { val: '2024-01-01' } }
-  );
+## Execução
 
-  // Envia para o e-commerce
-  for (const produto of produtos) {
-    await ecommerce.request('PUT', `/products/${produto.sku}/stock`, {
-      body: { quantity: produto.quantidade }
-    });
-  }
+Com a base configurada, escolha como executar suas integrações:
 
-  logger.info('Sincronização concluída', { total: produtos.length });
-}
-```
+<CardGroup cols={3}>
+  <Card title="Triggers" icon="clock" href="/plataforma/triggers">
+    Execute automações por agendamento (cron) ou webhook
+  </Card>
+  <Card title="Consumers" icon="inbox" href="/plataforma/consumers">
+    Processe mensagens de filas de mensageria em tempo real
+  </Card>
+  <Card title="API Gateway" icon="shield" href="/api-gateway/introducao">
+    Exponha automações e conectores como APIs HTTP ao mercado
+  </Card>
+</CardGroup>
+
+---
 
 ## Ferramentas para Desenvolvedores
 
-O ecossistema Kruzer oferece duas ferramentas principais para construir e executar suas automações:
-
 <CardGroup cols={2}>
-  <Card title="Kruzer CLI" icon="terminal" href="/cli-overview">
-    Ferramenta de linha de comando para configurar, autenticar e executar automações localmente
+  <Card title="Kruzer CLI" icon="terminal" href="/cli">
+    Configure, autentique e execute automações localmente
   </Card>
   <Card title="Kruzer IDK" icon="code" href="/instalacao">
-    SDK TypeScript com conectores para bancos de dados, APIs e serviços externos
+    SDK TypeScript com conectores para bancos, APIs e serviços externos
   </Card>
 </CardGroup>
+
+---
 
 ## Comece Agora
 
 <CardGroup cols={3}>
-  <Card title="CLI Overview" icon="terminal" href="/cli-overview">
-    Entenda como funciona a CLI
-  </Card>
   <Card title="Quick Start" icon="bolt" href="/quickstart">
     Crie sua primeira automação
   </Card>
   <Card title="Instalação do IDK" icon="download" href="/instalacao">
     Configure o SDK no seu projeto
+  </Card>
+  <Card title="API Gateway" icon="shield" href="/api-gateway/introducao">
+    Exponha sua primeira API
   </Card>
 </CardGroup>

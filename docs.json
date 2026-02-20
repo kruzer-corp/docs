@@ -23,11 +23,26 @@
           {
             "group": "Plataforma",
             "pages": [
-              "plataforma/repositories",
               "plataforma/tenants",
+              "plataforma/repositories",
               "plataforma/conectores",
               "plataforma/credentials",
-              "plataforma/triggers"
+              "plataforma/triggers",
+              "plataforma/consumers",
+              {
+                "group": "API Gateway",
+                "icon": "shield",
+                "pages": [
+                  "api-gateway/introducao",
+                  "api-gateway/conceitos",
+                  "api-gateway/releases",
+                  "api-gateway/endpoints",
+                  "api-gateway/ambientes",
+                  "api-gateway/policies",
+                  "api-gateway/acessos",
+                  "api-gateway/publicacao"
+                ]
+              }
             ]
           },
           {
