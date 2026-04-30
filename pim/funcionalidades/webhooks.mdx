@@ -88,7 +88,7 @@ icon: "bell"
 | **Complexidade no receptor** | Endpoint público + verificação de assinatura | Apenas chamadas de cliente |
 | **Resiliência a downtime do receptor** | Depende da política de retry | Recupera no próximo ciclo |
 
-A recomendação é **webhooks como primário** e **polling via [API](/pim/api) como fallback** para casos onde o receptor ficou inativo por longos períodos.
+A recomendação é **webhooks como primário** e **polling via API como fallback** para casos onde o receptor ficou inativo por longos períodos.
 
 ---
 
@@ -97,9 +97,6 @@ A recomendação é **webhooks como primário** e **polling via [API](/pim/api) 
 <CardGroup cols={2}>
   <Card title="Notificações In-App" icon="bell-on" href="/pim/funcionalidades/notificacoes">
     Notificações em tempo real para usuários da plataforma
-  </Card>
-  <Card title="Referência da API" icon="code" href="/pim/api">
-    Para reagir a webhooks consultando estado completo
   </Card>
   <Card title="DevTools — Triggers Webhook" icon="gears" href="/devtools/plataforma/triggers">
     Use webhooks do PIM para acionar automações no iPaaS
