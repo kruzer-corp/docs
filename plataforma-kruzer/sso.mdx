@@ -1,0 +1,74 @@
+---
+title: "SSO Corporativo"
+description: "Login único com Microsoft / Azure AD na plataforma Kruzer"
+icon: "building-shield"
+---
+
+A Kruzer suporta **Single Sign-On (SSO)** corporativo, permitindo que sua organização centralize a autenticação no provedor de identidade já utilizado internamente. Hoje a plataforma suporta **Microsoft / Azure AD**.
+
+## Por Que Usar SSO
+
+<CardGroup cols={2}>
+  <Card title="Menos senhas" icon="key">
+    Usuários acessam a Kruzer com a mesma credencial que já usam para Microsoft 365 / Outlook
+  </Card>
+  <Card title="Provisionamento centralizado" icon="users-gear">
+    Adicionar/remover acesso é feito pelo time de TI no provedor de identidade
+  </Card>
+  <Card title="Políticas corporativas" icon="shield-halved">
+    MFA, expiração de senha e bloqueio por inatividade aplicados no provedor valem para a Kruzer
+  </Card>
+  <Card title="Offboarding automático" icon="user-slash">
+    Desativar o usuário no Azure AD revoga o acesso à Kruzer imediatamente
+  </Card>
+</CardGroup>
+
+---
+
+## Como Funciona
+
+<Steps>
+  <Step title="Configuração inicial">
+    O administrador da organização solicita à Kruzer a habilitação do SSO. As informações de tenant Microsoft (Tenant ID, Application ID) são configuradas no IAM.
+  </Step>
+  <Step title="Login pelo SSO">
+    Na tela de login, o usuário escolhe **Entrar com Microsoft**. É redirecionado para o login Microsoft da sua organização.
+  </Step>
+  <Step title="Validação no Azure AD">
+    O Azure AD autentica o usuário (incluindo MFA, se exigido pela política da organização) e retorna um token para a Kruzer.
+  </Step>
+  <Step title="Sessão Kruzer">
+    A Kruzer valida o token, identifica o usuário no IAM (pelo email cadastrado) e emite o JWT interno. As permissões aplicadas são as cadastradas na Kruzer (não vêm do Azure AD).
+  </Step>
+</Steps>
+
+---
+
+## Modelo de Identidade
+
+Mesmo com SSO ativo, **o usuário precisa existir no IAM da Kruzer** para receber permissões. O Azure AD é responsável apenas pela autenticação — quem o usuário é e o que ele pode fazer continua sendo gerenciado na plataforma Kruzer.
+
+<Note>
+  O email cadastrado na Kruzer **deve coincidir** com o email principal do usuário no Azure AD. Discrepâncias bloqueiam o login.
+</Note>
+
+---
+
+## Coexistência com Senha Local
+
+Organizações com SSO habilitado normalmente **desabilitam o login por senha local** para forçar o uso do provedor corporativo. Em casos específicos (ex.: contas de administradores externos), é possível manter senha local convivendo com SSO.
+
+> A configuração de qual modo está ativo é feita pelo time Kruzer junto com o administrador da organização.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Autenticação" icon="right-to-bracket" href="/plataforma-kruzer/iam-autenticacao">
+    Visão geral de autenticação
+  </Card>
+  <Card title="Permissões" icon="users-gear" href="/plataforma-kruzer/iam-permissoes">
+    Modelo RBAC e gestão de papéis
+  </Card>
+</CardGroup>

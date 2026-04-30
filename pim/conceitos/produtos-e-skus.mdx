@@ -1,0 +1,91 @@
+---
+title: "Produtos e SKUs"
+description: "A entidade central do PIM e suas variações comerciais"
+icon: "tag"
+---
+
+O **Produto** é a entidade central do PIM — toda a operação gira em torno dele. O PIM trata o produto como um objeto rico, multi-idioma, com atributos dinâmicos, mídia vinculada e variações (SKUs).
+
+## Produto vs. SKU
+
+<CardGroup cols={2}>
+  <Card title="Produto" icon="box">
+    A entidade comercial conceitual: "Tênis Modelo X". Carrega informações compartilhadas: descrição, marca, família, categoria, mídia.
+  </Card>
+  <Card title="SKU" icon="barcode">
+    A variação vendável: "Tênis Modelo X — Tamanho 42, Cor Preta". Carrega o que diferencia a variação: código de barras, dimensões, preço, estoque.
+  </Card>
+</CardGroup>
+
+Um produto pode ter **uma ou várias SKUs**. Produtos simples (sem variação) têm apenas uma SKU. Produtos com variações de tamanho/cor/voltagem têm uma SKU por combinação.
+
+---
+
+## Tipos de Produto Suportados
+
+<CardGroup cols={2}>
+  <Card title="Simples" icon="box">
+    Sem variações. Uma SKU, um conjunto de informações.
+  </Card>
+  <Card title="Com Variantes" icon="layer-group">
+    Múltiplas SKUs derivadas do mesmo produto (cor, tamanho, voltagem)
+  </Card>
+  <Card title="Serviço" icon="screwdriver-wrench">
+    Itens não-físicos (instalação, garantia estendida)
+  </Card>
+  <Card title="Kit" icon="boxes-packing">
+    Composição de outros produtos vendidos em conjunto
+  </Card>
+</CardGroup>
+
+---
+
+## O Que Compõe um Produto
+
+Um produto no PIM carrega:
+
+| Categoria | Conteúdo |
+|-----------|----------|
+| **Identificação** | Código, nome, descrição (todos suportam multi-idioma) |
+| **Classificação** | Família, categoria(s), marca |
+| **Atributos** | Campos dinâmicos definidos pela [família](/pim/conceitos/familias-e-atributos) |
+| **Mídia** | Imagens, vídeos, documentos |
+| **Comerciais** | SKUs, preços, estoques |
+| **Relacionamentos** | Produtos relacionados, associações de catálogo |
+| **Workflow** | Status no [workflow de aprovação](/pim/conceitos/workflow-de-aprovacao) |
+| **Auditoria** | Quem criou/alterou, quando, snapshots |
+
+---
+
+## Multi-idioma
+
+Campos textuais (nome, descrição, valores de atributo do tipo texto) suportam múltiplos idiomas. Cada catálogo define quais idiomas são habilitados (ver Master Data → Idiomas).
+
+A interface permite preencher e visualizar os mesmos produtos em diferentes idiomas. A API expõe os valores por idioma e respeita o idioma corrente do usuário.
+
+---
+
+## Atributos Dinâmicos
+
+Diferente de um banco de dados tradicional, o PIM **não tem colunas fixas** para informações de produto. Os atributos disponíveis são definidos pela [família](/pim/conceitos/familias-e-atributos) — cada família carrega seu próprio conjunto.
+
+Isso significa que adicionar um novo atributo não exige migração: basta criá-lo na família e ele aparece nos produtos correspondentes.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Família e Atributos" icon="list-tree" href="/pim/conceitos/familias-e-atributos">
+    Como modelar atributos por tipo de produto
+  </Card>
+  <Card title="Categorias" icon="sitemap" href="/pim/conceitos/categorias">
+    Árvores de classificação
+  </Card>
+  <Card title="Workflow de Aprovação" icon="route" href="/pim/conceitos/workflow-de-aprovacao">
+    Fluxo de enriquecimento e revisão
+  </Card>
+  <Card title="Importação em Massa" icon="file-import" href="/pim/funcionalidades/importacao-em-massa">
+    Cadastre vários produtos de uma vez
+  </Card>
+</CardGroup>

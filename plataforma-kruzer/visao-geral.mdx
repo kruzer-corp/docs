@@ -1,0 +1,67 @@
+---
+title: "Visão Geral da Plataforma"
+description: "Como os módulos da Kruzer se relacionam e compartilham a mesma base de identidade"
+icon: "circle-nodes"
+---
+
+A Kruzer é uma **plataforma modular**: cada produto resolve um conjunto específico de problemas, mas todos compartilham a mesma camada de identidade, organização e governança. Você pode adotar um módulo isoladamente ou combinar vários conforme a necessidade do seu negócio.
+
+## Módulos Disponíveis
+
+<CardGroup cols={3}>
+  <Card title="DevTools" icon="code" href="/devtools">
+    iPaaS para automações e API Gateway para expor integrações como APIs ao mercado
+  </Card>
+  <Card title="PIM" icon="boxes-stacked" href="/pim">
+    Gestão centralizada de informações de produto, atributos, mídia, canais e publicação
+  </Card>
+  <Card title="OMS" icon="clipboard-list">
+    **Em breve.** Gestão de pedidos e operações de venda
+  </Card>
+</CardGroup>
+
+---
+
+## O Que é Compartilhado
+
+Independentemente do módulo que você utiliza, alguns serviços são **transversais** — atendem todos os produtos da Kruzer:
+
+<CardGroup cols={2}>
+  <Card title="Identidade (IAM)" icon="user-shield" href="/plataforma-kruzer/iam-autenticacao">
+    Autenticação única com JWT, contas de serviço e SSO corporativo
+  </Card>
+  <Card title="Permissões (RBAC)" icon="key" href="/plataforma-kruzer/iam-permissoes">
+    Controle de acesso baseado em papéis e grupos
+  </Card>
+</CardGroup>
+
+Isso significa que **um mesmo usuário** acessa DevTools e PIM com a mesma credencial; **uma mesma conta de serviço** pode integrar sistemas externos com qualquer módulo; **as permissões** são geridas no mesmo lugar.
+
+---
+
+## Como os Módulos Conversam
+
+Os módulos da Kruzer foram desenhados para funcionar de forma independente, mas se beneficiam quando combinados:
+
+- **PIM + DevTools**: o iPaaS pode sincronizar produtos do PIM com sistemas externos (ERPs, marketplaces, e-commerces) usando os webhooks do PIM como gatilho.
+- **API Gateway + PIM**: o gateway pode expor parte do catálogo PIM como uma API pública para parceiros, com versionamento, rate limit e quotas.
+- **OMS + PIM** *(em breve)*: pedidos do OMS consultarão o catálogo do PIM para enriquecer informações de produto.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Como funciona o login" icon="right-to-bracket" href="/plataforma-kruzer/iam-autenticacao">
+    Autenticação JWT e fluxo de login
+  </Card>
+  <Card title="Permissões e papéis" icon="users-gear" href="/plataforma-kruzer/iam-permissoes">
+    Modelo RBAC, grupos e contas de serviço
+  </Card>
+  <Card title="DevTools" icon="code" href="/devtools">
+    Conheça o módulo de integrações
+  </Card>
+  <Card title="PIM" icon="boxes-stacked" href="/pim">
+    Conheça o módulo de gestão de produtos
+  </Card>
+</CardGroup>

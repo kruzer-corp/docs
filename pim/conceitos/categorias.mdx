@@ -1,0 +1,81 @@
+---
+title: "Categorias"
+description: "Árvores de classificação para organizar e navegar pelo catálogo"
+icon: "sitemap"
+---
+
+As **Categorias** organizam produtos em uma estrutura hierárquica de classificação. Diferente da [Família](/pim/conceitos/familias-e-atributos) (que define atributos), a categoria define **onde o produto se encaixa na taxonomia comercial**.
+
+## Árvore de Categorias
+
+```
+Eletrônicos
+├── Áudio
+│   ├── Fones de Ouvido
+│   └── Caixas de Som
+├── Computação
+│   ├── Notebooks
+│   └── Acessórios
+└── Smart Home
+    ├── Iluminação
+    └── Segurança
+```
+
+Categorias são organizadas em **árvores**: cada nó pode ter múltiplos filhos, em qualquer profundidade.
+
+---
+
+## Múltiplas Árvores
+
+Você pode ter **múltiplas árvores** de categorias coexistindo no mesmo catálogo. Casos comuns:
+
+<CardGroup cols={2}>
+  <Card title="Árvore comercial vs. operacional" icon="code-branch">
+    Uma para o site/marketplace, outra para gestão interna de logística
+  </Card>
+  <Card title="Por canal" icon="rss">
+    Cada marketplace tem sua taxonomia preferida
+  </Card>
+  <Card title="Sazonais" icon="calendar">
+    Coleção atual vs. histórica
+  </Card>
+</CardGroup>
+
+Cada produto pode estar em **múltiplas categorias**, inclusive em árvores diferentes.
+
+---
+
+## Categoria vs. Família
+
+Confusão comum. A regra prática:
+
+| | Categoria | Família |
+|---|-----------|---------|
+| **Define** | onde o produto vive (classificação) | quais atributos o produto tem |
+| **Exemplo** | "Eletrônicos > Áudio > Fones" | "Família Fones (atributos: conexão, autonomia)" |
+| **Cardinalidade** | múltiplas por produto | uma por produto |
+| **Hierarquia** | sim, em árvore | sim, com herança opcional |
+
+Um mesmo produto pode estar na **categoria** "Áudio > Fones" e pertencer à **família** "Fones de Ouvido". As duas dimensões são ortogonais.
+
+---
+
+## Como Categorias Aparecem
+
+- **Filtros e busca**: usuários e canais filtram produtos por categoria.
+- **Navegação no e-commerce**: a árvore de categoria pode ser a estrutura de menu do site.
+- **Relatórios**: permite agrupar métricas por área do catálogo.
+- **Permissões**: alguns canais aceitam apenas categorias específicas.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Família e Atributos" icon="list-tree" href="/pim/conceitos/familias-e-atributos">
+    Modelagem de propriedades por tipo de produto
+  </Card>
+  <Card title="Canais e Publicação" icon="rss" href="/pim/conceitos/canais-e-publicacao">
+    Como categorias afetam publicação
+  </Card>
+</CardGroup>

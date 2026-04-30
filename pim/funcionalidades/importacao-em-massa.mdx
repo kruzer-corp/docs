@@ -1,0 +1,131 @@
+---
+title: "Importação em Massa"
+description: "Cadastre e atualize milhares de produtos via Excel/CSV com validação automática"
+icon: "file-import"
+---
+
+A **Importação em Massa** é a forma mais rápida de popular ou atualizar o catálogo no PIM. Permite carregar arquivos Excel ou CSV com dezenas de milhares de produtos, configurar o mapeamento de colunas para atributos, validar tudo de forma automática e revisar antes de comitar.
+
+## Quando Usar
+
+<CardGroup cols={2}>
+  <Card title="Onboarding inicial" icon="rocket">
+    Subir um catálogo já existente para o PIM pela primeira vez
+  </Card>
+  <Card title="Atualização periódica" icon="rotate">
+    Refrescar preços, estoques ou atributos em lote
+  </Card>
+  <Card title="Migração de fornecedor" icon="truck">
+    Importar produtos novos que chegam de um fornecedor em planilha
+  </Card>
+  <Card title="Correção em lote" icon="screwdriver-wrench">
+    Aplicar uma mesma mudança em milhares de produtos de uma vez
+  </Card>
+</CardGroup>
+
+---
+
+## Fluxo Geral
+
+<Steps>
+  <Step title="Upload do arquivo">
+    Faça o upload de um arquivo Excel (.xlsx) ou CSV. O PIM aceita arquivos com múltiplas planilhas — você seleciona qual usar.
+  </Step>
+  <Step title="Mapeamento de colunas">
+    Para cada coluna do arquivo, indique a qual atributo do PIM ela corresponde. O sistema sugere mapeamentos automaticamente quando os nomes batem.
+  </Step>
+  <Step title="Validação">
+    O PIM percorre todas as linhas validando: tipos, obrigatoriedade, opções válidas, unicidade dentro do arquivo, unicidade contra o catálogo, formatos de data, URLs, etc.
+  </Step>
+  <Step title="Preview e correção">
+    Erros são exibidos linha a linha. Você pode corrigir manualmente na própria interface ou exportar a lista de erros, ajustar a planilha e reimportar.
+  </Step>
+  <Step title="Commit">
+    Quando tudo está válido, o commit aplica as mudanças. O processamento é assíncrono (via Kafka) — para arquivos grandes, você acompanha o progresso e recebe notificação ao final.
+  </Step>
+</Steps>
+
+---
+
+## Validações Automáticas
+
+A importação valida automaticamente:
+
+| Tipo de Atributo | Validações |
+|-------------------|------------|
+| Numérico | Faixa mínima/máxima, formato decimal |
+| Texto | Comprimento mínimo/máximo |
+| Lista de Opções | Opção existe? Múltipla seleção respeitada? |
+| Booleano | Aceita: `true`/`false`, `1`/`0`, `sim`/`não`, `yes`/`no` |
+| Data | Aceita formatos `DD-MM-YYYY` e `YYYY-MM-DD` |
+| URL | Protocolo válido |
+| Imagem / Vídeo / Arquivo | Upload e formato suportado |
+| Único (unique) | Sem duplicidade dentro do arquivo nem no catálogo |
+
+<Tip>
+  **Datas** são a fonte mais comum de erro em importação. Verifique se a coluna está formatada como **texto** no Excel — colunas formatadas como "data" pelo Excel podem ser convertidas em números (serial do Excel) ao salvar como CSV.
+</Tip>
+
+---
+
+## Importação vs. Atualização em Massa
+
+Há dois modos:
+
+<CardGroup cols={2}>
+  <Card title="Importação (create)" icon="plus">
+    Cria produtos novos. Falha se o código do produto já existir, a menos que configurado para atualizar.
+  </Card>
+  <Card title="Bulk Update" icon="pen-to-square">
+    Atualiza produtos existentes. Permite alterar atributos específicos sem mexer no resto.
+  </Card>
+</CardGroup>
+
+A escolha do modo é feita ao iniciar a importação.
+
+---
+
+## Resolução por Código, ID ou Nome
+
+Atributos que referenciam outras entidades (ex.: marca, categoria, opção de atributo) podem ser informados por:
+
+- **Código** (recomendado — estável)
+- **ID interno** (estável mas opaco)
+- **Nome / rótulo** (frágil — mudanças no nome quebram referências futuras)
+
+A planilha pode misturar formatos. Para integrações automáticas e cadência repetida, sempre use **código**.
+
+---
+
+## Performance e Limites
+
+<CardGroup cols={2}>
+  <Card title="Processamento assíncrono" icon="clock">
+    Arquivos grandes são processados em background; você não fica preso na tela
+  </Card>
+  <Card title="Validação prévia rápida" icon="bolt">
+    A validação inicial roda em memória; só o commit toca o banco
+  </Card>
+  <Card title="Memoization" icon="memory">
+    Resoluções de marca/categoria/opção são cacheadas por arquivo para acelerar
+  </Card>
+  <Card title="Limite recomendado" icon="gauge">
+    Arquivos muito grandes (>10k linhas) podem exigir divisão em lotes — TODO confirmar limite oficial
+  </Card>
+</CardGroup>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Exportação" icon="file-export" href="/pim/funcionalidades/exportacao">
+    Modelo inverso: extraindo dados do PIM
+  </Card>
+  <Card title="Família e Atributos" icon="list-tree" href="/pim/conceitos/familias-e-atributos">
+    Como atributos definem o que pode ser importado
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/pim/funcionalidades/webhooks">
+    Disparar ações em sistemas externos após importação
+  </Card>
+</CardGroup>

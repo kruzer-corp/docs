@@ -11,36 +11,55 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Guia",
+        "tab": "Plataforma",
+        "groups": [
+          {
+            "group": "Visão Geral",
+            "pages": [
+              "plataforma-kruzer/visao-geral"
+            ]
+          },
+          {
+            "group": "Identidade e Acesso",
+            "pages": [
+              "plataforma-kruzer/iam-autenticacao",
+              "plataforma-kruzer/iam-permissoes",
+              "plataforma-kruzer/sso"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "DevTools",
         "groups": [
           {
             "group": "Primeiros Passos",
             "pages": [
-              "index",
-              "quickstart"
+              "devtools/index",
+              "devtools/quickstart"
             ]
           },
           {
-            "group": "Plataforma",
+            "group": "iPaaS",
             "pages": [
-              "plataforma/tenants",
-              "plataforma/repositories",
-              "plataforma/conectores",
-              "plataforma/credentials",
-              "plataforma/triggers",
-              "plataforma/consumers",
+              "devtools/plataforma/tenants",
+              "devtools/plataforma/repositories",
+              "devtools/plataforma/conectores",
+              "devtools/plataforma/credentials",
+              "devtools/plataforma/triggers",
+              "devtools/plataforma/consumers",
               {
                 "group": "API Gateway",
                 "icon": "shield",
                 "pages": [
-                  "api-gateway/introducao",
-                  "api-gateway/conceitos",
-                  "api-gateway/releases",
-                  "api-gateway/endpoints",
-                  "api-gateway/ambientes",
-                  "api-gateway/policies",
-                  "api-gateway/acessos",
-                  "api-gateway/publicacao"
+                  "devtools/api-gateway/introducao",
+                  "devtools/api-gateway/conceitos",
+                  "devtools/api-gateway/releases",
+                  "devtools/api-gateway/endpoints",
+                  "devtools/api-gateway/ambientes",
+                  "devtools/api-gateway/policies",
+                  "devtools/api-gateway/acessos",
+                  "devtools/api-gateway/publicacao"
                 ]
               }
             ]
@@ -48,42 +67,76 @@
           {
             "group": "Desenvolvimento",
             "pages": [
-              "cli",
+              "devtools/cli",
               {
                 "group": "IDK",
                 "icon": "cube",
                 "pages": [
-                  "instalacao",
+                  "devtools/instalacao",
                   {
                     "group": "Bancos de Dados",
                     "pages": [
-                      "data-sources/mysql",
-                      "data-sources/mssql",
-                      "data-sources/oracle",
-                      "data-sources/mongodb"
+                      "devtools/data-sources/mysql",
+                      "devtools/data-sources/mssql",
+                      "devtools/data-sources/oracle",
+                      "devtools/data-sources/mongodb"
                     ]
                   },
                   {
                     "group": "Integrações",
                     "pages": [
-                      "integracoes/rest-api",
-                      "integracoes/sap-rfc"
+                      "devtools/integracoes/rest-api",
+                      "devtools/integracoes/sap-rfc"
                     ]
                   },
                   {
                     "group": "Utilitários",
                     "pages": [
-                      "utilitarios/logger"
+                      "devtools/utilitarios/logger"
                     ]
                   },
                   {
                     "group": "Conceitos",
                     "pages": [
-                      "conceitos/tratamento-erros"
+                      "devtools/conceitos/tratamento-erros"
                     ]
                   }
                 ]
               }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "PIM",
+        "groups": [
+          {
+            "group": "Primeiros Passos",
+            "pages": [
+              "pim/index",
+              "pim/quickstart"
+            ]
+          },
+          {
+            "group": "Conceitos",
+            "pages": [
+              "pim/conceitos/catalogo-e-isolamento",
+              "pim/conceitos/produtos-e-skus",
+              "pim/conceitos/familias-e-atributos",
+              "pim/conceitos/categorias",
+              "pim/conceitos/canais-e-publicacao",
+              "pim/conceitos/workflow-de-aprovacao"
+            ]
+          },
+          {
+            "group": "Funcionalidades",
+            "pages": [
+              "pim/funcionalidades/importacao-em-massa",
+              "pim/funcionalidades/exportacao",
+              "pim/funcionalidades/associacoes",
+              "pim/funcionalidades/webhooks",
+              "pim/funcionalidades/notificacoes",
+              "pim/funcionalidades/master-data"
             ]
           }
         ]

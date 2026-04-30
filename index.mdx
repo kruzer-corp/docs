@@ -1,86 +1,55 @@
 ---
-title: "Bem-vindo ao Kruzer DevTools"
-description: "Plataforma completa para integrar sistemas e expor APIs ao mercado"
+title: "Bem-vindo à Kruzer"
+description: "Plataforma modular para gestão de dados, integrações e operações"
 icon: "rocket"
 ---
 
-O **Kruzer DevTools** é a plataforma de desenvolvimento da Kruzer. Com ela, times de engenharia conectam sistemas, automatizam processos e disponibilizam APIs ao mercado — tudo em um único lugar.
+A **Kruzer** é uma plataforma modular composta por produtos especializados que compartilham uma base comum de identidade, autenticação e governança. Você adota os módulos que fazem sentido para o seu negócio — todos integrados pela mesma plataforma.
 
-## O que a plataforma oferece
-
-<CardGroup cols={2}>
-  <Card title="iPaaS" icon="gears">
-    Automatize integrações entre sistemas internos e externos. Conecte ERPs, CRMs, bancos de dados, filas e APIs com automações em TypeScript executadas por Triggers e Consumers.
-  </Card>
-  <Card title="API Gateway" icon="shield">
-    Exponha suas integrações como APIs ao mercado. Controle versões, configure ambientes independentes e aplique políticas de segurança e performance.
-  </Card>
-</CardGroup>
-
----
-
-## Configurações compartilhadas
-
-Ambos os produtos compartilham a mesma base de configuração da plataforma:
-
-<CardGroup cols={2}>
-  <Card title="Tenants" icon="users" href="/plataforma/tenants">
-    Isolamento multi-tenant para suas integrações e APIs
-  </Card>
-  <Card title="Repositórios" icon="code-branch" href="/plataforma/repositories">
-    Código das automações organizado por projeto
-  </Card>
-  <Card title="Conectores" icon="plug" href="/plataforma/conectores">
-    Conexões com APIs REST, bancos de dados e serviços externos
-  </Card>
-  <Card title="Credenciais" icon="key" href="/plataforma/credentials">
-    Credenciais de acesso por tenant, vinculadas a conectores
-  </Card>
-</CardGroup>
-
----
-
-## Execução
-
-Com a base configurada, escolha como executar suas integrações:
+## Módulos da Plataforma
 
 <CardGroup cols={3}>
-  <Card title="Triggers" icon="clock" href="/plataforma/triggers">
-    Execute automações por agendamento (cron) ou webhook
+  <Card title="DevTools" icon="code" href="/devtools">
+    iPaaS e API Gateway para integrar sistemas, automatizar processos e expor APIs ao mercado.
   </Card>
-  <Card title="Consumers" icon="inbox" href="/plataforma/consumers">
-    Processe mensagens de filas de mensageria em tempo real
+  <Card title="PIM" icon="boxes-stacked" href="/pim">
+    Gestão centralizada de informações de produto: catálogos, atributos, mídia, canais e publicação.
   </Card>
-  <Card title="API Gateway" icon="shield" href="/api-gateway/introducao">
-    Exponha automações e conectores como APIs HTTP ao mercado
+  <Card title="OMS" icon="clipboard-list">
+    Em breve — gestão de pedidos e operações de venda.
   </Card>
 </CardGroup>
 
 ---
 
-## Ferramentas para Desenvolvedores
+## Base Compartilhada
+
+Todos os módulos da Kruzer utilizam a mesma camada de identidade, com login único, controle de acesso por papéis e suporte a SSO corporativo.
 
 <CardGroup cols={2}>
-  <Card title="Kruzer CLI" icon="terminal" href="/cli">
-    Configure, autentique e execute automações localmente
+  <Card title="Identidade e Acesso" icon="user-shield" href="/plataforma-kruzer/iam-autenticacao">
+    Autenticação JWT, contas de serviço e recuperação de senha
   </Card>
-  <Card title="Kruzer IDK" icon="code" href="/instalacao">
-    SDK TypeScript com conectores para bancos, APIs e serviços externos
+  <Card title="Permissões e Papéis" icon="key" href="/plataforma-kruzer/iam-permissoes">
+    Controle de acesso baseado em papéis (RBAC) e grupos
+  </Card>
+  <Card title="SSO Corporativo" icon="building-shield" href="/plataforma-kruzer/sso">
+    Login com Microsoft / Azure AD
+  </Card>
+  <Card title="Visão Geral da Plataforma" icon="circle-nodes" href="/plataforma-kruzer/visao-geral">
+    Como os módulos se relacionam
   </Card>
 </CardGroup>
 
 ---
 
-## Comece Agora
+## Por Onde Começar
 
-<CardGroup cols={3}>
-  <Card title="Quick Start" icon="bolt" href="/quickstart">
-    Crie sua primeira automação
+<CardGroup cols={2}>
+  <Card title="Quero integrar sistemas" icon="gears" href="/devtools">
+    Comece pelo DevTools (iPaaS + API Gateway)
   </Card>
-  <Card title="Instalação do IDK" icon="download" href="/instalacao">
-    Configure o SDK no seu projeto
-  </Card>
-  <Card title="API Gateway" icon="shield" href="/api-gateway/introducao">
-    Exponha sua primeira API
+  <Card title="Quero gerenciar produtos" icon="tags" href="/pim">
+    Comece pelo PIM
   </Card>
 </CardGroup>

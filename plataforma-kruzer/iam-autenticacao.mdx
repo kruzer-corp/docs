@@ -1,0 +1,102 @@
+---
+title: "Autenticação"
+description: "Como usuários e sistemas se autenticam na plataforma Kruzer"
+icon: "right-to-bracket"
+---
+
+A autenticação na Kruzer é centralizada pelo **IAM** (Identity & Access Management) — o serviço transversal que atende todos os módulos (DevTools, PIM e, em breve, OMS). Um único cadastro de usuário acessa qualquer módulo, e as mesmas credenciais valem para todos os produtos.
+
+## Modelos de Autenticação
+
+<CardGroup cols={2}>
+  <Card title="Usuário" icon="user">
+    Pessoa real que faz login pela interface da plataforma. Token JWT emitido após login válido.
+  </Card>
+  <Card title="Conta de Serviço" icon="robot">
+    Identidade não-humana usada por sistemas externos para integrações automatizadas via API.
+  </Card>
+</CardGroup>
+
+---
+
+## Fluxo de Login (Usuário)
+
+<Steps>
+  <Step title="Acesso à plataforma">
+    O usuário acessa a URL da plataforma e é redirecionado para a tela de login.
+  </Step>
+  <Step title="Credenciais">
+    Informa email e senha cadastrados, ou opta pelo **SSO corporativo** (quando habilitado para a organização).
+  </Step>
+  <Step title="Emissão do token">
+    O IAM valida as credenciais e emite um **JWT (JSON Web Token)** assinado, contendo identificador, email, idioma e papéis do usuário.
+  </Step>
+  <Step title="Acesso aos módulos">
+    O token é enviado em cada requisição no cabeçalho `Authorization: Bearer <token>`. Cada módulo (DevTools, PIM) valida o token contra o IAM e aplica as permissões correspondentes.
+  </Step>
+</Steps>
+
+---
+
+## Token JWT
+
+O token emitido é um JWT padrão. Não é necessário inspecionar o conteúdo do lado do cliente — a plataforma cuida da validação e renovação. Apontamentos importantes:
+
+- **Validade limitada.** Tokens expiram após o tempo configurado pela organização.
+- **Renovação automática.** A interface da plataforma renova o token transparentemente.
+- **Bearer no header.** Para integrações via API, o token deve ser enviado em todas as chamadas no header `Authorization: Bearer <token>`.
+
+<Warning>
+  Nunca compartilhe seu token nem o coloque em código-fonte público. Para integrações sistêmicas, prefira **contas de serviço** com escopo restrito.
+</Warning>
+
+---
+
+## Conta de Serviço
+
+Para integrar sistemas externos com a Kruzer (ex.: um ERP que sincroniza produtos com o PIM, ou um pipeline de CI que aciona automações DevTools), use uma **conta de serviço**:
+
+<CardGroup cols={2}>
+  <Card title="Identidade não-humana" icon="robot">
+    Pertence a um sistema, não a uma pessoa
+  </Card>
+  <Card title="Escopo restrito" icon="lock">
+    Recebe apenas as permissões estritamente necessárias para a integração
+  </Card>
+  <Card title="Auditável" icon="magnifying-glass">
+    Toda ação fica registrada com a identidade da conta de serviço
+  </Card>
+  <Card title="Sem dependência de pessoa" icon="users-slash">
+    Independente de saídas/entradas de colaboradores
+  </Card>
+</CardGroup>
+
+A criação e a rotação de credenciais de contas de serviço são feitas pelo administrador da organização na seção **Permissões** da plataforma.
+
+---
+
+## Recuperação de Senha
+
+Caso esqueça sua senha:
+
+1. Na tela de login, clique em **Esqueci minha senha**.
+2. Informe seu email cadastrado.
+3. Você receberá um link de redefinição válido por tempo limitado.
+4. Defina uma nova senha seguindo a política da organização.
+
+<Note>
+  Organizações com **SSO corporativo** habilitado não usam senha local — a recuperação é feita pelo provedor de identidade (ex.: Microsoft / Azure AD).
+</Note>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Permissões e Papéis" icon="users-gear" href="/plataforma-kruzer/iam-permissoes">
+    Como o controle de acesso por papéis funciona
+  </Card>
+  <Card title="SSO Corporativo" icon="building-shield" href="/plataforma-kruzer/sso">
+    Login com Microsoft / Azure AD
+  </Card>
+</CardGroup>

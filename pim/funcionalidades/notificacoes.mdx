@@ -1,0 +1,68 @@
+---
+title: "Notificações"
+description: "Notificações em tempo real dentro da interface do PIM"
+icon: "bell-on"
+---
+
+O PIM inclui um serviço de **notificações em tempo real** que avisa os usuários sobre eventos relevantes diretamente na interface — sem precisar recarregar a página. É o complemento interno aos [webhooks](/pim/funcionalidades/webhooks) (que vão para sistemas externos).
+
+## Quando Notificações São Disparadas
+
+<CardGroup cols={2}>
+  <Card title="Workflow" icon="route">
+    Novo item na sua fila, etapa concluída, produto rejeitado
+  </Card>
+  <Card title="SLA e atrasos" icon="clock">
+    Alertas quando uma etapa está próxima do prazo ou atrasada
+  </Card>
+  <Card title="Importação" icon="file-import">
+    Conclusão (sucesso/erro) de importações em massa que você iniciou
+  </Card>
+  <Card title="Publicação" icon="rss">
+    Status de publicação em canais (sucesso/falha)
+  </Card>
+  <Card title="Atribuições" icon="user-plus">
+    Quando um produto é atribuído a você ou ao seu grupo
+  </Card>
+  <Card title="Menções e comentários" icon="comment">
+    Quando alguém te mencionar em um comentário (quando aplicável)
+  </Card>
+</CardGroup>
+
+---
+
+## Como Aparece
+
+A central de notificações fica acessível por um ícone no topo da interface. Notificações novas surgem em tempo real e ficam destacadas até serem lidas.
+
+Cada notificação carrega:
+
+- **Origem** (qual evento gerou)
+- **Link contextual** (clicar leva direto ao item — produto, importação, etapa de workflow)
+- **Timestamp**
+- **Status** (lida / não lida)
+
+---
+
+## Notificações por Email
+
+Eventos críticos (atrasos de SLA, falhas de publicação) podem também disparar **email**. As preferências de email são configuráveis por usuário em **Perfil → Alertas por email**.
+
+---
+
+## Tempo Real
+
+A entrega em tempo real usa **WebSockets**, garantindo que múltiplos usuários trabalhando em paralelo vejam atualizações sem reload. A infraestrutura suporta múltiplas instâncias do servidor para alta disponibilidade.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Webhooks" icon="bell" href="/pim/funcionalidades/webhooks">
+    Notificações para sistemas externos
+  </Card>
+  <Card title="Workflow de Aprovação" icon="route" href="/pim/conceitos/workflow-de-aprovacao">
+    Principal fonte de notificações no PIM
+  </Card>
+</CardGroup>

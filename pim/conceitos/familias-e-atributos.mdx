@@ -1,0 +1,108 @@
+---
+title: "Famílias e Atributos"
+description: "Modelagem dinâmica de propriedades de produto via famílias e atributos tipados"
+icon: "list-tree"
+---
+
+A modelagem dinâmica de propriedades de produto no PIM é feita por dois conceitos complementares: **Famílias** definem quais atributos um grupo de produtos carrega; **Atributos** são os campos individuais com tipo, validação e comportamento próprios.
+
+## Família
+
+Uma **Família** representa um tipo de produto que compartilha o mesmo conjunto de atributos. Exemplos:
+
+- Família "Fones de Ouvido" — atributos: tipo de conexão, autonomia, faixa de frequência, peso.
+- Família "Camisetas" — atributos: composição, gramatura, gênero, tamanhos disponíveis.
+- Família "Eletrodomésticos" — atributos: voltagem, consumo, dimensões, classificação energética.
+
+Cada produto pertence a **uma família**. Mudar a família reavalia quais atributos estão disponíveis para o produto.
+
+---
+
+## Atributo
+
+Um **Atributo** é uma propriedade tipada que pode ser atribuída a uma família. O PIM suporta diversos tipos:
+
+<CardGroup cols={2}>
+  <Card title="Texto curto / longo" icon="text-width">
+    Nome de modelo, descrição técnica, observações
+  </Card>
+  <Card title="Numérico" icon="hashtag">
+    Peso, dimensões, voltagem (com unidade de medida)
+  </Card>
+  <Card title="Booleano" icon="toggle-on">
+    Tem garantia? É vendido em kit?
+  </Card>
+  <Card title="Lista de Opções" icon="list">
+    Cor, voltagem, gênero — opções pré-definidas (single ou multi-select)
+  </Card>
+  <Card title="Data" icon="calendar">
+    Data de lançamento, validade
+  </Card>
+  <Card title="URL" icon="link">
+    Link para datasheet, manual, vídeo externo
+  </Card>
+  <Card title="Imagem / Vídeo / Arquivo" icon="image">
+    Mídia vinculada ao atributo
+  </Card>
+  <Card title="Multi-idioma" icon="language">
+    Qualquer atributo de texto pode ter valores por idioma
+  </Card>
+</CardGroup>
+
+Cada atributo carrega:
+
+- **Tipo** (texto, número, lista, etc.)
+- **Validações** (obrigatório, faixas mín/máx, regex, unicidade)
+- **Comportamentos** (afeta SKU? participa da busca?)
+- **Internacionalização** (valores por idioma quando aplicável)
+- **Unidade de medida** (para tipos numéricos — ver [Master Data](/pim/funcionalidades/master-data))
+
+---
+
+## Grupos de Atributos
+
+Em famílias com muitos atributos, fica útil agrupá-los para organização visual e lógica. Os **Grupos de Atributos** são containers que reúnem atributos relacionados:
+
+- Grupo "Dimensões" → altura, largura, profundidade, peso
+- Grupo "Especificações Técnicas" → voltagem, potência, consumo
+- Grupo "Marketing" → tagline, descrição comercial, palavras-chave
+
+Os grupos servem tanto na interface quanto na importação/exportação para organizar a entrada e saída dos dados.
+
+---
+
+## Lista de Opções (Attribute Options)
+
+Atributos do tipo "Lista de Opções" referenciam um conjunto pré-definido de valores possíveis. Cada opção carrega:
+
+- **Código** (estável, usado em integrações)
+- **Rótulo** (multi-idioma, para exibição)
+- **Ordem** (para ordenação na interface)
+
+Exemplo: atributo "Cor" → opções `vermelho`, `azul`, `preto`, cada uma com rótulos em PT/EN/ES.
+
+---
+
+## Herança e Reuso
+
+- **Atributos são reutilizáveis** entre famílias. Definir "Peso" uma vez permite usá-lo em todas as famílias que precisem.
+- **Famílias herdam atributos** de famílias pai (quando configurado). Útil para criar variações específicas sem repetir definições.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Produtos e SKUs" icon="tag" href="/pim/conceitos/produtos-e-skus">
+    Como atributos compõem produtos
+  </Card>
+  <Card title="Categorias" icon="sitemap" href="/pim/conceitos/categorias">
+    Classificação versus atributos
+  </Card>
+  <Card title="Master Data" icon="database" href="/pim/funcionalidades/master-data">
+    Idiomas e unidades de medida
+  </Card>
+  <Card title="Importação em Massa" icon="file-import" href="/pim/funcionalidades/importacao-em-massa">
+    Como atributos aparecem em planilhas de importação
+  </Card>
+</CardGroup>

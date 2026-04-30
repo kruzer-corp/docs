@@ -1,0 +1,95 @@
+---
+title: "Quick Start"
+description: "Cadastre seu primeiro produto no PIM em poucos minutos"
+icon: "bolt"
+---
+
+Este guia vai te levar do zero ao primeiro produto cadastrado e publicado no Kruzer PIM. O caminho mais rápido para entender o fluxo da plataforma.
+
+## Pré-requisitos
+
+- Acesso à plataforma Kruzer com permissão para o módulo PIM
+- Pelo menos um **catálogo** disponível para sua conta (provisionado pelo administrador da organização)
+- Familiaridade com os [conceitos básicos](/pim/conceitos/produtos-e-skus) (recomendado, não obrigatório)
+
+---
+
+## 1. Acesse o PIM
+
+Faça login na plataforma e selecione o módulo **PIM** no menu principal. Se você não vê o módulo, peça ao administrador da sua organização para conceder a permissão correspondente.
+
+## 2. Selecione um Catálogo
+
+O PIM organiza dados em **catálogos** — cada catálogo é um ambiente isolado (ver [Catálogo e Isolamento](/pim/conceitos/catalogo-e-isolamento)). Selecione o catálogo onde você vai trabalhar no seletor no topo da tela.
+
+## 3. Configure a Estrutura Básica
+
+Antes de cadastrar produtos, vale ter a estrutura mínima pronta:
+
+<Steps>
+  <Step title="Crie pelo menos uma Categoria">
+    Em **Categorias**, monte sua árvore (ex.: Eletrônicos > Áudio > Fones de Ouvido). Você pode começar simples e expandir depois.
+  </Step>
+  <Step title="Crie uma Família">
+    Em **Famílias**, defina o conjunto de atributos que produtos similares vão compartilhar (ex.: família "Fones" com atributos: cor, conexão, autonomia).
+  </Step>
+  <Step title="Configure Atributos">
+    Em **Atributos**, crie ou ajuste os campos da família (texto, número, lista de opções, imagem, etc.). Veja [Família e Atributos](/pim/conceitos/familias-e-atributos).
+  </Step>
+</Steps>
+
+---
+
+## 4. Cadastre seu Primeiro Produto
+
+<Steps>
+  <Step title="Novo produto">
+    Vá em **Produtos** e clique em **Novo Produto**.
+  </Step>
+  <Step title="Informações básicas">
+    Preencha código, nome e descrição (suporta múltiplos idiomas). Selecione a **família** e a **categoria**.
+  </Step>
+  <Step title="Atributos">
+    Os atributos da família aparecem dinamicamente. Preencha conforme aplicável.
+  </Step>
+  <Step title="Mídia">
+    Adicione imagens, vídeos e documentos vinculados ao produto.
+  </Step>
+  <Step title="Salvar">
+    Salve. Dependendo da configuração da sua organização, o produto pode entrar em um [workflow de aprovação](/pim/conceitos/workflow-de-aprovacao) antes de ficar disponível.
+  </Step>
+</Steps>
+
+---
+
+## 5. Publique em um Canal
+
+Com o produto aprovado, é hora de levá-lo para o mundo:
+
+<Steps>
+  <Step title="Configure um Canal">
+    Em **Canais**, crie ou selecione o canal de destino (e-commerce, marketplace, ERP, parceiro). Veja [Canais e Publicação](/pim/conceitos/canais-e-publicacao).
+  </Step>
+  <Step title="Crie uma Publicação">
+    Vincule o produto ao canal e defina o que será publicado.
+  </Step>
+  <Step title="Acompanhe o status">
+    O sistema mostra o status da publicação por canal e por produto.
+  </Step>
+</Steps>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Importação em Massa" icon="file-import" href="/pim/funcionalidades/importacao-em-massa">
+    Cadastre milhares de produtos de uma vez via Excel/CSV
+  </Card>
+  <Card title="Workflow de Aprovação" icon="route" href="/pim/conceitos/workflow-de-aprovacao">
+    Configure etapas de revisão e enriquecimento
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/pim/funcionalidades/webhooks">
+    Notifique sistemas externos quando produtos mudarem
+  </Card>
+</CardGroup>

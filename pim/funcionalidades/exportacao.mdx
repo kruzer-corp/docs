@@ -1,0 +1,65 @@
+---
+title: "Exportação"
+description: "Extraia o catálogo do PIM em Excel/CSV para análise, integração ou backup"
+icon: "file-export"
+---
+
+A **Exportação** é o caminho inverso da [importação](/pim/funcionalidades/importacao-em-massa) — extrai dados do PIM para arquivos Excel ou CSV. Útil para análises offline, integrações com sistemas que consomem arquivos, backups manuais ou reprocessamento em lote.
+
+## Casos de Uso
+
+<CardGroup cols={2}>
+  <Card title="Análise externa" icon="chart-line">
+    Levar o catálogo para Excel/Power BI/Sheets para análises ad-hoc
+  </Card>
+  <Card title="Integração via arquivo" icon="file-arrow-up">
+    Sistemas legados que só consomem CSVs em pastas compartilhadas
+  </Card>
+  <Card title="Backup pontual" icon="floppy-disk">
+    Snapshot do catálogo antes de uma operação grande
+  </Card>
+  <Card title="Edição em massa offline" icon="pen-to-square">
+    Exportar, editar em planilha, reimportar com bulk update
+  </Card>
+</CardGroup>
+
+---
+
+## Fluxo Geral
+
+<Steps>
+  <Step title="Defina o escopo">
+    Escolha quais produtos exportar — todos, ou filtrados por categoria, marca, família, status, atributo etc.
+  </Step>
+  <Step title="Selecione os campos">
+    Indique quais atributos devem entrar no arquivo. Pode-se salvar **templates** para reusar o mesmo recorte.
+  </Step>
+  <Step title="Formato e idioma">
+    Escolha Excel ou CSV; defina o idioma para campos multi-idioma.
+  </Step>
+  <Step title="Geração assíncrona">
+    O PIM gera o arquivo em background; você é notificado quando estiver pronto.
+  </Step>
+  <Step title="Download">
+    Baixe o arquivo na seção **Downloads** da exportação. Arquivos ficam disponíveis por tempo configurado.
+  </Step>
+</Steps>
+
+---
+
+## Templates de Exportação
+
+Templates salvam o conjunto de campos selecionados para reuso. Útil quando há **exportações recorrentes** com a mesma estrutura — ex.: arquivo semanal para um marketplace, dump diário para o ERP.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Importação em Massa" icon="file-import" href="/pim/funcionalidades/importacao-em-massa">
+    Caminho inverso — entrada de dados em lote
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/pim/funcionalidades/webhooks">
+    Para integrações em tempo real (sem arquivos)
+  </Card>
+</CardGroup>
