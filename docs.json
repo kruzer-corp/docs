@@ -35,7 +35,7 @@
           {
             "group": "Primeiros Passos",
             "pages": [
-              "devtools/index",
+              "devtools/visao-geral",
               "devtools/quickstart"
             ]
           },
@@ -113,7 +113,7 @@
           {
             "group": "Primeiros Passos",
             "pages": [
-              "pim/index",
+              "pim/visao-geral",
               "pim/quickstart"
             ]
           },
