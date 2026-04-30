@@ -1,0 +1,79 @@
+---
+title: "Endpoints"
+description: "Crie e configure as rotas HTTP expostas pelo seu gateway"
+icon: "route"
+---
+
+**Endpoints** são as rotas HTTP que o seu gateway expõe ao mundo. Cada endpoint combina um método, um caminho e uma integração que define de onde vem a resposta.
+
+## Anatomia de um Endpoint
+
+| Campo | Descrição |
+|-------|-----------|
+| **Método** | Verbo HTTP — GET, POST, PUT, PATCH ou DELETE |
+| **URN** | Caminho da rota, ex: `/usuarios/:id` |
+| **Alias** | Nome interno único para identificar o endpoint |
+| **Integração** | O que executa quando a rota é chamada |
+| **Pasta** | Agrupamento opcional para organizar os endpoints na interface |
+
+<Note>
+  Alias e a combinação URN + Método devem ser únicos dentro de uma release.
+</Note>
+
+---
+
+## Tipos de integração
+
+Ao criar um endpoint, você escolhe como ele vai responder às requisições:
+
+<CardGroup cols={2}>
+  <Card title="Conector" icon="plug">
+    Executa um recurso de um conector iPaaS — uma query de banco de dados, um endpoint REST configurado, etc.
+
+    **Você seleciona:** conector → alias do recurso
+  </Card>
+  <Card title="Repositório" icon="code-branch">
+    Executa um arquivo de automação TypeScript de um repositório.
+
+    **Você seleciona:** repositório → branch → arquivo
+  </Card>
+</CardGroup>
+
+---
+
+## Editando e removendo
+
+- **Editar**: clique no endpoint na barra lateral e altere os campos desejados
+- **Remover**: use a opção Apagar no menu de ações do endpoint
+
+### Lixeira
+
+Endpoints removidos ficam disponíveis na **Lixeira** e podem ser restaurados enquanto a release estiver no status `BUILDING`. Após o encerramento da release, a lixeira não está mais disponível.
+
+---
+
+## Salvar vs Publicar
+
+| Ação | O que faz |
+|------|-----------|
+| **Salvar** | Persiste as alterações na release — ainda não reflete no Gateway Runtime |
+| **Publicar** | Sincroniza as configurações com o Gateway Runtime e torna a API acessível |
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Ambientes" icon="layer-group" href="/devtools/api-gateway/ambientes">
+    Ative e desative endpoints por ambiente
+  </Card>
+  <Card title="Releases" icon="tag" href="/devtools/api-gateway/releases">
+    Entenda o ciclo de vida das versões
+  </Card>
+  <Card title="Conectores" icon="plug" href="/devtools/plataforma/conectores">
+    Configure os conectores que seus endpoints podem usar
+  </Card>
+  <Card title="Publicação" icon="rocket" href="/devtools/api-gateway/publicacao">
+    Publique sua release e coloque a API no ar
+  </Card>
+</CardGroup>

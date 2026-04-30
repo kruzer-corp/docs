@@ -1,0 +1,107 @@
+---
+title: "Webhooks"
+description: "Notifique sistemas externos em tempo real sobre eventos do PIM"
+icon: "bell"
+---
+
+**Webhooks** são chamadas HTTP que o PIM dispara para URLs configuradas pela sua organização sempre que um evento relevante acontece. É a forma recomendada para sistemas externos (ERPs, e-commerces, marketplaces) reagirem a mudanças no catálogo em tempo real, sem precisar fazer *polling*.
+
+## Quando Usar
+
+<CardGroup cols={2}>
+  <Card title="Sincronização em tempo real" icon="bolt">
+    Atualizar o e-commerce instantaneamente quando um produto é aprovado
+  </Card>
+  <Card title="Indexação de busca" icon="magnifying-glass">
+    Refrescar índices de busca (Algolia, Elasticsearch) ao mudar produto
+  </Card>
+  <Card title="Reprocessamento downstream" icon="arrows-rotate">
+    Disparar fluxos no DevTools/iPaaS conforme produtos mudam de estado
+  </Card>
+  <Card title="Auditoria externa" icon="clipboard-check">
+    Registrar eventos em sistemas de auditoria/observabilidade
+  </Card>
+</CardGroup>
+
+---
+
+## Eventos Suportados
+
+> A lista completa varia conforme a configuração e o módulo. Eventos típicos incluem:
+
+- **Produto criado / atualizado / removido**
+- **Produto aprovado em workflow** ou **rejeitado**
+- **Etapa de workflow concluída**
+- **Importação em massa concluída**
+- **Publicação em canal concluída** (sucesso/falha)
+- **Mudanças de preço ou estoque**
+
+---
+
+## Configuração
+
+<Steps>
+  <Step title="Cadastre o webhook">
+    Na seção **Webhooks**, informe a URL de destino, os eventos a observar e (opcionalmente) filtros adicionais (categoria, marca).
+  </Step>
+  <Step title="Autenticação">
+    Configure o método de autenticação aceito pelo seu endpoint: header customizado, basic auth ou bearer token. O PIM injeta o segredo configurado em cada chamada.
+  </Step>
+  <Step title="Assinatura HMAC">
+    O PIM assina cada payload com HMAC. Seu sistema deve verificar a assinatura para garantir a autenticidade da chamada.
+  </Step>
+  <Step title="Política de retry">
+    Em caso de falha (timeout, 5xx), o PIM reenvia com backoff exponencial. Falhas persistentes geram alerta.
+  </Step>
+</Steps>
+
+---
+
+## Boas Práticas no Endpoint Receptor
+
+<AccordionGroup>
+  <Accordion title="Responda rápido (≤ 2s)">
+    Retorne 200 OK assim que receber e enfileire o processamento internamente. Endpoints lentos causam timeout e retry desnecessário.
+  </Accordion>
+
+  <Accordion title="Idempotência">
+    Trate o mesmo `event_id` duas vezes como uma vez só. Retries podem reentregar o mesmo evento.
+  </Accordion>
+
+  <Accordion title="Verifique a assinatura HMAC">
+    Não confie em chamadas que vêm de "qualquer lugar" — valide o segredo compartilhado antes de processar.
+  </Accordion>
+
+  <Accordion title="Lide com payloads grandes">
+    Eventos de produto podem trazer payloads expressivos. Considere modos "leve" (apenas IDs) e usar a API para buscar o estado completo quando precisar.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Webhooks vs. API Polling
+
+| | Webhooks | Polling |
+|---|----------|---------|
+| **Latência** | Quase instantânea | Definida pelo intervalo |
+| **Eficiência** | Altíssima — só recebe quando há mudança | Baixa — chama mesmo sem mudança |
+| **Complexidade no receptor** | Endpoint público + verificação de assinatura | Apenas chamadas de cliente |
+| **Resiliência a downtime do receptor** | Depende da política de retry | Recupera no próximo ciclo |
+
+A recomendação é **webhooks como primário** e **polling via [API](/pim/api) como fallback** para casos onde o receptor ficou inativo por longos períodos.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Notificações In-App" icon="bell-on" href="/pim/funcionalidades/notificacoes">
+    Notificações em tempo real para usuários da plataforma
+  </Card>
+  <Card title="Referência da API" icon="code" href="/pim/api">
+    Para reagir a webhooks consultando estado completo
+  </Card>
+  <Card title="DevTools — Triggers Webhook" icon="gears" href="/devtools/plataforma/triggers">
+    Use webhooks do PIM para acionar automações no iPaaS
+  </Card>
+</CardGroup>

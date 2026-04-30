@@ -1,0 +1,134 @@
+---
+title: "Conceitos"
+description: "Os seis elementos que estruturam o API Gateway do Kruzer DevTools"
+icon: "book"
+---
+
+O API Gateway é construído sobre seis conceitos que se relacionam em hierarquia. Entender como eles se encaixam facilita a configuração e evita confusões no dia a dia.
+
+```
+Gateway
+  ├── Release 1.0 (CLOSED)        ←── referenciada por Ambiente Production
+  │     └── Endpoints
+  ├── Release 2.0 (BUILDING)      ←── referenciada por Ambiente Development
+  │     └── Endpoints
+  ├── Ambiente Development  ──────────→ Release 2.0
+  │     ├── Policies
+  │     └── Acessos
+  └── Ambiente Production   ──────────→ Release 1.0
+        ├── Policies
+        └── Acessos
+```
+
+Releases e Ambientes são independentes dentro do Gateway. Um Ambiente **referencia** uma Release — ele expõe os endpoints daquela versão. Isso permite que Dev aponte para a versão mais recente enquanto Produção ainda usa uma versão estável.
+
+---
+
+## Gateway
+
+O **Gateway** é a entidade raiz. Ele representa seu API Gateway na plataforma e agrupa todas as releases e ambientes. Ao criar um gateway, a plataforma provisiona automaticamente:
+
+- Uma **Release `1.0`** no status `BUILDING` (pronta para receber endpoints)
+- Um **Ambiente `Development`** vinculado a essa release
+
+---
+
+## Release
+
+Uma **Release** é uma coleção versionada de endpoints. Ela funciona como um "snapshot" da sua API em um determinado momento.
+
+| Status | Descrição |
+|--------|-----------|
+| `BUILDING` | Editável — endpoints podem ser criados, alterados e removidos |
+| `CLOSED` | Fechada após publicação — não pode mais ser editada |
+
+Quando você publica uma release, ela é encerrada e uma nova pode ser criada automaticamente com todos os endpoints copiados.
+
+<Tip>
+  Pense na Release como uma branch de código: você desenvolve na `BUILDING`, e ao publicar, ela vira uma versão imutável que fica registrada no histórico.
+</Tip>
+
+---
+
+## Endpoint
+
+Um **Endpoint** é uma rota HTTP exposta pelo gateway. Cada endpoint combina:
+
+- **Método HTTP** — GET, POST, PUT, PATCH, DELETE
+- **URN** — o caminho da rota (ex: `/usuarios/:id`)
+- **Alias** — nome interno para identificar o endpoint
+- **Integração vinculada** — de onde vem a lógica de resposta
+
+Os endpoints podem apontar para dois tipos de integração:
+
+<CardGroup cols={2}>
+  <Card title="Conector" icon="plug">
+    Executa um recurso de um conector iPaaS (query de banco, endpoint REST, etc)
+  </Card>
+  <Card title="Repositório" icon="code-branch">
+    Executa um arquivo de automação TypeScript de um repositório e branch específicos
+  </Card>
+</CardGroup>
+
+---
+
+## Ambiente
+
+Um **Ambiente** é uma instância de execução do gateway — tipicamente Dev, QA e Produção. Cada ambiente **referencia uma Release**, que determina quais endpoints estão disponíveis para exposição. Além disso, cada ambiente tem:
+
+- **Release vinculada** — a versão dos endpoints que esse ambiente expõe
+- **URL base** própria (o host pelo qual a API é acessada)
+- **Tipo de autenticação** configurado independentemente
+- **Endpoints ativados ou desativados** de forma individual dentro da release vinculada
+- **Policies** e **Acessos** próprios
+
+<Note>
+  Ambientes são independentes entre si e podem referenciar releases diferentes. Dev pode apontar para a Release 2.0 (em desenvolvimento) enquanto Produção ainda usa a Release 1.0 (estável).
+</Note>
+
+---
+
+## Policy
+
+Uma **Policy** é uma regra de segurança ou performance aplicada a endpoints dentro de um ambiente. Existem quatro tipos:
+
+| Tipo | O que faz |
+|------|-----------|
+| **Rate Limit** | Limita o número de requisições por período curto (segundos, minutos, horas) |
+| **Quota** | Limita o volume total de requisições por período longo (meses, anos) |
+| **Cache** | Armazena respostas por um tempo definido, reduzindo chamadas repetidas |
+| **Inbound Rules** | Permite ou bloqueia requisições com base em faixas de IP |
+
+Policies são vinculadas a endpoints específicos dentro de um ambiente e suportam erros HTTP personalizados.
+
+---
+
+## Acesso
+
+Um **Acesso** é uma credencial gerada pela plataforma para que um tenant consuma a API do gateway. O tipo de acesso segue o método de autenticação configurado no ambiente:
+
+| Tipo | Como funciona |
+|------|---------------|
+| **Basic Auth** | Usuário e senha codificados em Base64 |
+| **API Key** | Chave única gerada pela plataforma |
+| **OAuth2** | Fluxo completo com emissão e renovação de token |
+
+<Warning>
+  Ao alterar o tipo de autenticação de um ambiente, todos os acessos existentes são removidos automaticamente.
+</Warning>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Endpoints" icon="route" href="/devtools/api-gateway/endpoints">
+    Adicione rotas à sua release
+  </Card>
+  <Card title="Ambientes" icon="layer-group" href="/devtools/api-gateway/ambientes">
+    Configure ambientes e autenticação
+  </Card>
+  <Card title="Policies" icon="shield-halved" href="/devtools/api-gateway/policies">
+    Proteja seus endpoints com políticas
+  </Card>
+</CardGroup>

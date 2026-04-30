@@ -1,0 +1,110 @@
+---
+title: "Policies"
+description: "Aplique regras de segurança e performance nos endpoints do seu gateway"
+icon: "shield-halved"
+---
+
+**Policies** são regras aplicadas a endpoints dentro de um ambiente. Elas permitem controlar o tráfego, proteger a API contra abusos e otimizar a performance — sem alterar o código das integrações.
+
+## Tipos de Policy
+
+<CardGroup cols={2}>
+  <Card title="Rate Limit" icon="gauge">
+    Limita requisições por período curto
+  </Card>
+  <Card title="Quota" icon="chart-bar">
+    Limita o volume total por período longo
+  </Card>
+  <Card title="Cache" icon="database">
+    Armazena respostas para reduzir chamadas repetidas
+  </Card>
+  <Card title="Inbound Rules" icon="filter">
+    Controla acesso por faixa de IP
+  </Card>
+</CardGroup>
+
+---
+
+## Rate Limit
+
+Limita quantas requisições um consumidor pode fazer em um intervalo curto de tempo. Ideal para proteger endpoints contra picos de uso e abuso.
+
+| Configuração | Descrição |
+|-------------|-----------|
+| **Limite** | Número máximo de requisições permitidas |
+| **Período** | Janela de tempo — Segundos, Minutos ou Horas |
+
+**Exemplo:** 100 requisições por minuto.
+
+---
+
+## Quota
+
+Controla o volume total de requisições em períodos longos. Usada para gerenciar consumo por plano ou contrato.
+
+| Configuração | Descrição |
+|-------------|-----------|
+| **Limite** | Número máximo de requisições no período |
+| **Período** | Meses ou Anos |
+
+**Exemplo:** 10.000 requisições por mês.
+
+<Tip>
+  Combine Rate Limit e Quota para controle em dois níveis: o Rate Limit evita picos pontuais, a Quota garante que o consumo mensal não ultrapasse o contratado.
+</Tip>
+
+---
+
+## Cache
+
+Armazena a resposta de um endpoint por um tempo definido. Requisições dentro do período de cache retornam a resposta armazenada, sem acionar a integração novamente.
+
+| Configuração | Descrição |
+|-------------|-----------|
+| **Duração** | Tempo de armazenamento em segundos |
+
+**Exemplo:** 300 segundos (5 minutos).
+
+Recomendado para endpoints de leitura cujos dados mudam com pouca frequência.
+
+---
+
+## Inbound Rules
+
+Define quais origens podem — ou não — acessar o endpoint, com base no endereço IP da requisição.
+
+| Configuração | Descrição |
+|-------------|-----------|
+| **Faixas de IP** | IPs ou faixas CIDR separados por vírgula (ex: `192.168.1.0/24, 10.0.0.1`) |
+| **Tipo de regra** | `Permitir` — libera apenas os IPs listados / `Bloquear` — barra os IPs listados |
+
+---
+
+## Erro personalizado
+
+Todos os tipos de policy suportam a configuração de um erro personalizado retornado quando a regra é violada:
+
+| Campo | Exemplo |
+|-------|---------|
+| **HTTP Status Code** | `429` |
+| **Mensagem** | `Limite de requisições atingido. Tente novamente em alguns instantes.` |
+
+<Warning>
+  Ao encerrar uma release e criar uma nova, os IDs dos endpoints mudam. Policies vinculadas a endpoints precisam ser reconfiguradas na nova release.
+</Warning>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Acessos" icon="key" href="/devtools/api-gateway/acessos">
+    Crie credenciais para os consumidores da API
+  </Card>
+  <Card title="Ambientes" icon="layer-group" href="/devtools/api-gateway/ambientes">
+    Gerencie autenticação e endpoints por ambiente
+  </Card>
+  <Card title="Publicação" icon="rocket" href="/devtools/api-gateway/publicacao">
+    Publique suas configurações
+  </Card>
+</CardGroup>

@@ -1,0 +1,68 @@
+---
+title: "Master Data: Idiomas e Unidades"
+description: "Dados mestres compartilhados entre catálogos: idiomas suportados e unidades de medida"
+icon: "database"
+---
+
+O **Master Data** do PIM gerencia dados de referência usados em todo o módulo: os **idiomas** suportados para conteúdo multi-idioma e as **unidades de medida** aplicáveis a atributos numéricos.
+
+## Idiomas
+
+<CardGroup cols={2}>
+  <Card title="Multi-idioma por padrão" icon="language">
+    Nome, descrição e qualquer atributo de texto suportam múltiplos idiomas
+  </Card>
+  <Card title="Configuração por catálogo" icon="folder-tree">
+    Cada catálogo habilita os idiomas relevantes ao seu mercado
+  </Card>
+  <Card title="Idioma corrente do usuário" icon="user">
+    A interface respeita a preferência do usuário, com fallback configurável
+  </Card>
+  <Card title="Exportação por idioma" icon="file-export">
+    Exportações geram arquivos com os valores no idioma escolhido
+  </Card>
+</CardGroup>
+
+A configuração de idiomas é feita pelo administrador da organização. Adicionar um idioma novo torna-o disponível imediatamente para preenchimento — valores existentes não são traduzidos automaticamente.
+
+---
+
+## Unidades de Medida
+
+Atributos numéricos podem ter uma **unidade de medida** vinculada (peso em kg, dimensão em cm, voltagem em V). Isso permite:
+
+- Exibir o valor com a unidade correta na interface
+- Padronizar valores na importação (rejeitar dados sem unidade quando o atributo exigir)
+- Converter unidades quando publicar para canais que esperam outro padrão (TODO confirmar suporte automático)
+
+A lista de unidades suportadas é configurável pelo administrador. Tipos típicos:
+
+- **Peso**: g, kg, lb, oz
+- **Dimensão**: mm, cm, m, in
+- **Volume**: ml, l, gal
+- **Voltagem**: V (110, 220, bivolt)
+- **Energia**: W, kW
+
+---
+
+## Por que Master Data Está aqui
+
+Embora idiomas e unidades sejam dados aparentemente "técnicos", eles são compartilhados por todas as funcionalidades do PIM e impactam diretamente:
+
+- O modelo de [família e atributos](/pim/conceitos/familias-e-atributos)
+- A [importação em massa](/pim/funcionalidades/importacao-em-massa) (validações)
+- A [exportação](/pim/funcionalidades/exportacao) (valores por idioma)
+- A [publicação](/pim/conceitos/canais-e-publicacao) (cada canal pode esperar idiomas/unidades específicos)
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Família e Atributos" icon="list-tree" href="/pim/conceitos/familias-e-atributos">
+    Onde idiomas e unidades são aplicados
+  </Card>
+  <Card title="Importação em Massa" icon="file-import" href="/pim/funcionalidades/importacao-em-massa">
+    Como valores são validados na entrada
+  </Card>
+</CardGroup>

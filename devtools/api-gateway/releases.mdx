@@ -1,0 +1,72 @@
+---
+title: "Releases"
+description: "Versione sua API com controle total sobre o ciclo de vida dos endpoints"
+icon: "tag"
+---
+
+Uma **Release** é uma coleção versionada de endpoints. Ela representa um contrato da sua API em um determinado momento — o que está na release é o que o gateway expõe ao mundo.
+
+## Ciclo de vida
+
+Toda release nasce no status `BUILDING` e pode ser encerrada (status `CLOSED`) ao ser publicada.
+
+```
+ BUILDING  →  publicação  →  CLOSED
+(editável)                (imutável)
+     ↓
+Nova release criada automaticamente (opcional)
+```
+
+| Status | O que significa |
+|--------|----------------|
+| `BUILDING` | Release ativa — endpoints podem ser criados, editados e removidos |
+| `CLOSED` | Release publicada — não pode mais ser alterada, mas permanece no histórico |
+
+---
+
+## Por que versionar?
+
+O versionamento de releases permite que você:
+
+- Evolua a API sem interromper consumidores que dependem de uma versão anterior
+- Tenha histórico auditável de todas as mudanças nos endpoints
+- Promova versões diferentes para ambientes distintos (ex: v2 em Produção, v3 em Dev)
+
+---
+
+## Copy-on-close
+
+Ao encerrar uma release durante a publicação, a plataforma **copia automaticamente todos os endpoints** da release atual para a nova. Isso garante que você comece a próxima versão com a mesma base, sem precisar recriar nada manualmente.
+
+<Warning>
+  Ao encerrar uma release, os IDs dos endpoints mudam na nova release. Políticas vinculadas a endpoints precisam ser reconfiguradas no novo ambiente após a publicação.
+</Warning>
+
+---
+
+## Criando uma nova release manualmente
+
+Além do fluxo automático de publicação, você pode criar uma nova release diretamente pela interface, definindo um nome de versão livre (ex: `2.0`, `v2-beta`, `2024-Q1`).
+
+<Tip>
+  Não há formato obrigatório para o nome da release. Use a convenção que fizer mais sentido para o seu time.
+</Tip>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Endpoints" icon="route" href="/devtools/api-gateway/endpoints">
+    Adicione rotas à release atual
+  </Card>
+  <Card title="Publicação" icon="rocket" href="/devtools/api-gateway/publicacao">
+    Publique sua release e gerencie o encerramento de versões
+  </Card>
+  <Card title="Ambientes" icon="layer-group" href="/devtools/api-gateway/ambientes">
+    Vincule ambientes à release correta
+  </Card>
+  <Card title="Policies" icon="shield-halved" href="/devtools/api-gateway/policies">
+    Reconfigure políticas após encerrar uma release
+  </Card>
+</CardGroup>

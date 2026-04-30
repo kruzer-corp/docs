@@ -1,0 +1,104 @@
+---
+title: "Consumers"
+description: "Execute automações em resposta a eventos de filas de mensageria"
+icon: "inbox"
+---
+
+**Consumers** são serviços que ficam escutando filas de mensageria e executam uma automação a cada mensagem recebida. Enquanto os Triggers executam por agendamento ou webhook, os Consumers respondem a **eventos de fila** — ideais para integrações assíncronas e processamento contínuo de mensagens.
+
+## Como funciona
+
+Ao receber uma mensagem na fila, o Consumer instancia a automação configurada, passando o conteúdo da mensagem como input. A execução acontece de forma isolada para cada mensagem, com rastreabilidade individual via logs.
+
+<CardGroup cols={2}>
+  <Card title="Processamento assíncrono" icon="arrows-spin">
+    Processa mensagens conforme chegam, sem depender de agendamento
+  </Card>
+  <Card title="Integração com sistemas legados" icon="building">
+    Conecta plataformas que se comunicam via filas de mensageria corporativas
+  </Card>
+  <Card title="Alta vazão" icon="bolt">
+    Suporta brokers de alto volume com processamento contínuo
+  </Card>
+  <Card title="Rastreabilidade" icon="magnifying-glass">
+    Cada execução é registrada individualmente nos logs da plataforma
+  </Card>
+</CardGroup>
+
+---
+
+## Brokers suportados
+
+A plataforma suporta diferentes brokers de mensageria. A configuração varia conforme o broker escolhido — cada um possui seus próprios parâmetros de conexão.
+
+Abaixo, exemplos de configuração para alguns dos brokers disponíveis:
+
+<AccordionGroup>
+  <Accordion title="Apache Kafka">
+    Broker de streaming distribuído de alta vazão, amplamente usado para pipelines de eventos em tempo real.
+
+    | Parâmetro | Descrição |
+    |-----------|-----------|
+    | Brokers | Lista de endereços dos brokers (ex: `kafka:9092`) |
+    | Client ID | Identificador do cliente na conexão |
+    | Group ID | Grupo de consumidores para balanceamento |
+    | Topic | Tópico que o Consumer irá escutar |
+    | Dead Letter Topic | Tópico para mensagens com falha (opcional) |
+  </Accordion>
+
+  <Accordion title="IBM MQ">
+    Broker corporativo da IBM, comum em integrações com sistemas legados e ambientes financeiros/industriais.
+
+    | Parâmetro | Descrição |
+    |-----------|-----------|
+    | Host | Endereço do servidor IBM MQ |
+    | Porta | Porta de conexão |
+    | Channel | Canal de comunicação |
+    | Queue Manager | Nome do gerenciador de filas |
+    | Queue Name | Nome da fila a ser consumida |
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  A plataforma está em constante evolução com suporte a novos brokers. Consulte a documentação ou entre em contato com o time Kruzer para verificar as integrações disponíveis.
+</Note>
+
+---
+
+## Configuração geral
+
+Independente do broker escolhido, todo Consumer compartilha os mesmos campos base:
+
+| Campo | Descrição |
+|-------|-----------|
+| **Nome** | Identificador do Consumer na plataforma |
+| **Broker** | Tipo de mensageria utilizado |
+| **Tenant** | Tenant ao qual o Consumer está vinculado |
+| **Repositório** | Repositório que contém o código da automação |
+| **Branch** | Branch do repositório |
+| **Arquivo** | Arquivo de automação que será executado a cada mensagem |
+| **Logger name** | Nome do serviço de log para rastreabilidade das execuções |
+| **Status** | Ativo ou Inativo |
+
+<Warning>
+  Um Consumer **ativo não pode ser editado**. Para alterar qualquer configuração, desative-o primeiro, faça as alterações e reative.
+</Warning>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Triggers" icon="clock" href="/devtools/plataforma/triggers">
+    Execute automações por agendamento ou webhook
+  </Card>
+  <Card title="Repositórios" icon="code-branch" href="/devtools/plataforma/repositories">
+    Gerencie os repositórios com seus arquivos de automação
+  </Card>
+  <Card title="Tenants" icon="users" href="/devtools/plataforma/tenants">
+    Configure os tenants vinculados às suas execuções
+  </Card>
+  <Card title="Logger (IDK)" icon="file-lines" href="/devtools/utilitarios/logger">
+    Saiba como usar o KrzLogger nas suas automações
+  </Card>
+</CardGroup>

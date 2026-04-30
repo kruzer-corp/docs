@@ -1,0 +1,119 @@
+---
+title: "Referência da API"
+description: "API REST do PIM Kruzer para integradores externos"
+icon: "code"
+---
+
+A **API REST do Kruzer PIM** permite que sistemas externos — ERPs, e-commerces, marketplaces, integradores e parceiros — leiam e escrevam dados do catálogo de forma programática. Esta seção documenta autenticação, convenções gerais e o catálogo completo de endpoints.
+
+## Capacidades
+
+<CardGroup cols={2}>
+  <Card title="Produtos e SKUs" icon="tag">
+    CRUD completo, busca, paginação, streaming para grandes volumes
+  </Card>
+  <Card title="Catálogo e Taxonomia" icon="sitemap">
+    Categorias, famílias, atributos, marcas, opções
+  </Card>
+  <Card title="Operações em Massa" icon="layer-group">
+    Importação e exportação assíncronas
+  </Card>
+  <Card title="Workflows" icon="route">
+    Iniciar, avançar e consultar aprovações
+  </Card>
+  <Card title="Preços e Estoque" icon="money-bill-trend-up">
+    Atualizar volumes em tempo real
+  </Card>
+  <Card title="Webhooks e Publicação" icon="bell">
+    Configurar destinos e disparar publicações
+  </Card>
+</CardGroup>
+
+---
+
+## Autenticação
+
+Toda requisição à API exige autenticação via **JWT Bearer Token**. Para integrações sistêmicas, recomenda-se usar uma **conta de serviço** dedicada (ver [Identidade e Acesso](/plataforma-kruzer/iam-autenticacao)).
+
+```http
+GET /products HTTP/1.1
+Host: api.kruzer.io
+Authorization: Bearer <seu-token-jwt>
+```
+
+<Warning>
+  Tokens têm validade limitada. Para integrações de longo prazo, implemente o fluxo de renovação descrito em [Autenticação](/plataforma-kruzer/iam-autenticacao).
+</Warning>
+
+---
+
+## Convenções Gerais
+
+### Base URL
+
+> **TODO**: confirmar URL pública oficial (ex.: `https://api.kruzer.io/pim` ou similar). Cada ambiente (Dev, QA, Produção) terá sua própria URL.
+
+### Formato
+
+- **Request/response**: JSON (`Content-Type: application/json`)
+- **Datas**: ISO 8601 (`2026-04-30T15:00:00Z`)
+- **IDs**: strings opacas — não tente interpretar o formato
+
+### Paginação
+
+Listagens suportam paginação. Os parâmetros e formato exatos estão documentados em cada endpoint na seção abaixo.
+
+### Erros
+
+Códigos HTTP padrão. O corpo da resposta de erro segue o formato:
+
+```json
+{
+  "error": "ValidationError",
+  "message": "Descrição legível do erro",
+  "details": { }
+}
+```
+
+### Multi-idioma
+
+Endpoints que retornam campos multi-idioma (nome, descrição) respeitam o header `Accept-Language` quando enviado, ou retornam o idioma padrão do catálogo.
+
+### Rate Limiting
+
+> **TODO**: confirmar limites oficiais. Recomendação geral: implemente backoff exponencial em caso de `429 Too Many Requests`.
+
+---
+
+## Endpoints
+
+A referência completa de endpoints é **gerada automaticamente** a partir dos controllers do PIM e disponibilizada nesta seção. Os endpoints aparecem agrupados por domínio (Produtos, Categorias, Importações, Workflows, etc.) no menu lateral.
+
+Cada endpoint exibe:
+
+- **Método HTTP e rota**
+- **Parâmetros** (path, query)
+- **Request body** (quando aplicável)
+- **Códigos de resposta** e formato
+
+**Total atual**: 150 endpoints distribuídos em 29 domínios.
+
+<Note>
+  Os schemas de request/response estão na versão inicial — campos detalhados serão enriquecidos progressivamente. Para o modelo de dados completo de cada entidade, consulte [Conceitos do PIM](/pim/conceitos/produtos-e-skus).
+</Note>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Autenticação" icon="key" href="/plataforma-kruzer/iam-autenticacao">
+    JWT, contas de serviço e renovação de token
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/pim/funcionalidades/webhooks">
+    Modelo push para reagir a eventos em tempo real
+  </Card>
+  <Card title="Conceitos do PIM" icon="book" href="/pim/conceitos/produtos-e-skus">
+    Entenda o modelo de dados antes de integrar
+  </Card>
+</CardGroup>

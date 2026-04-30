@@ -1,0 +1,65 @@
+---
+title: "Associações e Relações"
+description: "Conecte produtos relacionados, complementares e variantes para enriquecer o catálogo"
+icon: "diagram-project"
+---
+
+O PIM permite criar **relações entre produtos** — produtos que se complementam, substitutos, variantes, peças, ou qualquer relação relevante para a operação. Essas relações são consumidas por canais (ex.: e-commerces) para gerar recomendações e organizar a navegação.
+
+## Tipos de Relação
+
+<CardGroup cols={2}>
+  <Card title="Relacionados" icon="link">
+    Produtos da mesma categoria que se completam ("quem comprou X também comprou Y")
+  </Card>
+  <Card title="Complementares" icon="puzzle-piece">
+    Acessórios e adicionais (capa de celular para um modelo específico)
+  </Card>
+  <Card title="Substitutos" icon="rotate">
+    Produtos equivalentes em outro fabricante ou linha
+  </Card>
+  <Card title="Variantes" icon="layer-group">
+    Versões do mesmo produto com diferenças (cor, tamanho)
+  </Card>
+  <Card title="Peças e componentes" icon="screwdriver-wrench">
+    Partes que compõem um kit ou produto principal
+  </Card>
+  <Card title="Cross-sell / Up-sell" icon="arrow-up-right-dots">
+    Produtos premium ou adicionais sugeridos
+  </Card>
+</CardGroup>
+
+> A lista exata de tipos de relação configuráveis depende da sua organização. Tipos novos podem ser definidos pelo administrador.
+
+---
+
+## Associações de Catálogo
+
+Em organizações com [múltiplos catálogos](/pim/conceitos/catalogo-e-isolamento), o PIM permite **associar** um mesmo produto a outros catálogos sem duplicá-lo. Isso facilita reuso entre marcas/regiões/canais que compartilham parte do sortimento.
+
+A associação pode:
+
+- Compartilhar todos os atributos do produto base
+- Sobrescrever atributos específicos no catálogo destino (ex.: descrição traduzida)
+- Manter ou diferenciar mídia, preço e estoque
+
+---
+
+## Como as Relações são Consumidas
+
+- **Canais de e-commerce** usam relações para gerar listas de "produtos relacionados" na página do produto.
+- **APIs públicas** ([referência](/pim/api)) expõem relações para sistemas externos consumirem
+- **Workflows** podem propagar mudanças entre produtos relacionados (ex.: aprovar um produto também valida acessórios vinculados)
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Catálogo e Isolamento" icon="folder-tree" href="/pim/conceitos/catalogo-e-isolamento">
+    Modelo multi-tenant de catálogos
+  </Card>
+  <Card title="Canais e Publicação" icon="rss" href="/pim/conceitos/canais-e-publicacao">
+    Como relações são publicadas
+  </Card>
+</CardGroup>
