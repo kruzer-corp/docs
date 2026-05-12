@@ -4,7 +4,41 @@ description: "Login único com Microsoft / Azure AD na plataforma Kruzer"
 icon: "building-shield"
 ---
 
-A Kruzer suporta **Single Sign-On (SSO)** corporativo, permitindo que sua organização centralize a autenticação no provedor de identidade já utilizado internamente. Hoje a plataforma suporta **Microsoft / Azure AD**.
+A Kruzer suporta **Single Sign-On (SSO)** corporativo, permitindo que sua organização centralize a autenticação no provedor de identidade já utilizado internamente. Esta página é destinada a times de **TI e Segurança da Informação** responsáveis por avaliar e implantar o SSO com a Kruzer.
+
+---
+
+## Compatibilidade
+
+### O que é suportado hoje
+
+| Item | Suporte |
+|---|---|
+| Provedor de identidade | **Microsoft Entra ID** (antigo Azure AD) |
+| Protocolo | **OpenID Connect (OIDC)** com fluxo *Authorization Code* |
+| Tenant Azure AD por organização | 1 tenant por organização Kruzer |
+| MFA herdado do provedor | Sim — qualquer política MFA do Azure AD vale automaticamente |
+| Coexistência SSO + senha local | Sim — configurável por organização |
+| Forçar uso obrigatório do SSO | Sim — desabilita o login por senha local |
+| Audit log de autenticação | Sim — registrado no IAM |
+
+### O que ainda não é suportado
+
+<Warning>
+  Os itens abaixo **não fazem parte do produto hoje**. Caso sejam requisitos para sua organização, fale com o time Kruzer antes de iniciar a implantação.
+</Warning>
+
+| Item | Status |
+|---|---|
+| SAML 2.0 | Não suportado — apenas OIDC |
+| Google Workspace, Okta, ADFS e demais IdPs | Não suportados — apenas Microsoft Entra ID |
+| Provisionamento automático via **SCIM** | Não implementado — provisionamento é manual |
+| **Just-In-Time (JIT)** provisioning no primeiro login | Não — usuário precisa existir previamente no IAM |
+| Mapeamento de **grupos do Azure AD** para papéis/grupos Kruzer | Não — permissões são atribuídas no Kruzer |
+| **Single Logout (SLO)** federado | Não — logout no Kruzer não desloga do Microsoft |
+| Múltiplos tenants Azure AD por organização Kruzer | Não — 1 tenant por organização |
+
+---
 
 ## Por Que Usar SSO
 
@@ -18,29 +52,102 @@ A Kruzer suporta **Single Sign-On (SSO)** corporativo, permitindo que sua organi
   <Card title="Políticas corporativas" icon="shield-halved">
     MFA, expiração de senha e bloqueio por inatividade aplicados no provedor valem para a Kruzer
   </Card>
-  <Card title="Offboarding automático" icon="user-slash">
-    Desativar o usuário no Azure AD revoga o acesso à Kruzer imediatamente
+  <Card title="Offboarding" icon="user-slash">
+    Desativar o usuário no Azure AD revoga imediatamente o login via SSO
   </Card>
 </CardGroup>
+
+---
+
+## Pré-Requisitos
+
+Antes de iniciar a configuração, confirme:
+
+- **Tenant Microsoft Entra ID ativo** na sua organização.
+- Acesso de **Global Administrator** ou **Application Administrator** no Azure AD para criar o *App Registration*.
+- **Administrador Kruzer** com permissão para ativar SSO na organização.
+- **Lista prévia de usuários** que terão acesso à plataforma (devem ser cadastrados no IAM Kruzer antes do primeiro login).
+- **Domínio(s) de email corporativo** definidos — apenas usuários com email nesses domínios poderão usar SSO.
 
 ---
 
 ## Como Funciona
 
 <Steps>
-  <Step title="Configuração inicial">
-    O administrador da organização solicita à Kruzer a habilitação do SSO. As informações de tenant Microsoft (Tenant ID, Application ID) são configuradas no IAM.
-  </Step>
   <Step title="Login pelo SSO">
-    Na tela de login, o usuário escolhe **Entrar com Microsoft**. É redirecionado para o login Microsoft da sua organização.
+    Na tela de login da Kruzer, o usuário escolhe **Entrar com Microsoft**. O navegador é redirecionado para `login.microsoftonline.com/<tenant-id>` da sua organização.
   </Step>
-  <Step title="Validação no Azure AD">
-    O Azure AD autentica o usuário (incluindo MFA, se exigido pela política da organização) e retorna um token para a Kruzer.
+  <Step title="Autenticação no Azure AD">
+    O Azure AD autentica o usuário aplicando as políticas internas — incluindo **MFA** quando exigido pela organização. Após login válido, redireciona o navegador de volta para a Kruzer com um *authorization code*.
+  </Step>
+  <Step title="Troca de código por token">
+    O backend da Kruzer troca o *authorization code* por um **id_token (JWT)** chamando o Azure AD servidor-a-servidor com o `client_secret`. A assinatura do token é validada contra as chaves públicas do tenant.
   </Step>
   <Step title="Sessão Kruzer">
-    A Kruzer valida o token, identifica o usuário no IAM (pelo email cadastrado) e emite o JWT interno. As permissões aplicadas são as cadastradas na Kruzer (não vêm do Azure AD).
+    A Kruzer identifica o usuário no IAM pelo **email** retornado nas claims e emite o JWT interno da plataforma. As **permissões** aplicadas são as cadastradas no IAM da Kruzer — não vêm do Azure AD.
   </Step>
 </Steps>
+
+---
+
+## Configuração Passo a Passo
+
+<Steps>
+  <Step title="Kruzer fornece o Redirect URI">
+    O time Kruzer envia ao administrador da organização:
+    - **Redirect URI** (URL de callback) que deverá ser cadastrada no App Registration.
+    - Lista de **claims/escopos** esperados (`openid`, `profile`, `email`).
+  </Step>
+  <Step title="Criar App Registration no Azure AD">
+    No portal Azure, em **Microsoft Entra ID → App registrations → New registration**:
+    - **Name:** sugerimos `Kruzer SSO`.
+    - **Supported account types:** *Accounts in this organizational directory only* (single tenant).
+    - **Redirect URI:** plataforma *Web*, com a URL fornecida pela Kruzer.
+  </Step>
+  <Step title="Gerar Client Secret">
+    Em **Certificates & secrets → New client secret**, gere um segredo com validade de **12 ou 24 meses**. Anote o valor — ele só é exibido uma vez.
+
+    <Tip>
+      Agende a **rotação do secret** antes do vencimento. Secret expirado bloqueia todo o login SSO da organização.
+    </Tip>
+  </Step>
+  <Step title="Conceder consentimento (se necessário)">
+    Em **API permissions**, confirme que estão presentes `openid`, `profile` e `email` (escopos delegados do Microsoft Graph). Se a organização exigir, clique em **Grant admin consent**.
+  </Step>
+  <Step title="Enviar credenciais para a Kruzer">
+    O administrador da organização envia ao time Kruzer (por canal seguro):
+    - **Directory (tenant) ID**
+    - **Application (client) ID**
+    - **Client Secret**
+    - **Domínio(s) de email** autorizado(s) para SSO
+  </Step>
+  <Step title="Ativação no IAM Kruzer">
+    O time Kruzer aplica as credenciais na configuração da organização. O botão **Entrar com Microsoft** passa a ser exibido na tela de login.
+  </Step>
+  <Step title="Validação com usuário piloto">
+    Antes do rollout, valide o fluxo com **1 usuário piloto** já cadastrado no IAM Kruzer. Confirme login, claims recebidas e acesso aos módulos esperados.
+  </Step>
+  <Step title="Rollout para os demais usuários">
+    Garanta que todos os usuários estão **cadastrados no IAM Kruzer com email idêntico ao Azure AD** antes de comunicar a virada. Opcionalmente, desabilite o login por senha local para forçar uso do SSO.
+  </Step>
+</Steps>
+
+---
+
+## Atributos e Claims
+
+A Kruzer consome as seguintes claims do `id_token` retornado pelo Azure AD:
+
+| Claim | Origem no Azure AD | Uso na Kruzer |
+|---|---|---|
+| `email` ou `preferred_username` | UPN / Email principal do usuário | **Identificação** — match com email cadastrado no IAM |
+| `name` | Nome de exibição | Exibição na interface |
+| `oid` | Object ID (identificador imutável do usuário no tenant) | Identificador estável para auditoria |
+| `tid` | Tenant ID | Validação de que o token veio do tenant correto |
+
+<Note>
+  Não usamos claim de grupos hoje. Permissões e papéis são atribuídos exclusivamente dentro da plataforma Kruzer.
+</Note>
 
 ---
 
@@ -49,16 +156,145 @@ A Kruzer suporta **Single Sign-On (SSO)** corporativo, permitindo que sua organi
 Mesmo com SSO ativo, **o usuário precisa existir no IAM da Kruzer** para receber permissões. O Azure AD é responsável apenas pela autenticação — quem o usuário é e o que ele pode fazer continua sendo gerenciado na plataforma Kruzer.
 
 <Note>
-  O email cadastrado na Kruzer **deve coincidir** com o email principal do usuário no Azure AD. Discrepâncias bloqueiam o login.
+  O email cadastrado na Kruzer **deve coincidir** com o email principal (`preferred_username` / UPN) do usuário no Azure AD. Discrepâncias bloqueiam o login.
 </Note>
+
+---
+
+## Provisionamento de Usuários
+
+Hoje o provisionamento é **manual**. Antes que um usuário possa logar via SSO, um administrador Kruzer precisa cadastrá-lo no IAM da plataforma.
+
+**Fluxo recomendado:**
+
+1. Levantar a lista de usuários que terão acesso (do AD ou do RH).
+2. Cadastrar todos previamente no IAM com o **email exatamente igual** ao do Azure AD.
+3. Atribuir papéis/grupos Kruzer conforme a função de cada um.
+4. Comunicar a disponibilidade do SSO para que cada usuário faça o primeiro login.
+
+<Tip>
+  Para grandes volumes, considere o cadastro em lote via API do IAM. Fale com o time Kruzer para receber as credenciais de conta de serviço apropriadas.
+</Tip>
+
+> Provisionamento automático via **SCIM** está em avaliação no roadmap, sem prazo definido.
+
+---
+
+## Permissões
+
+O SSO autentica — não autoriza. As permissões continuam sendo controladas pelo **RBAC** da Kruzer (papéis, grupos e permissões granulares por módulo). Veja [Permissões e Papéis](/plataforma-kruzer/iam-permissoes) para detalhes.
+
+---
+
+## Sessão e Segurança
+
+- **Duração do JWT.** O token interno da Kruzer expira após o tempo configurado para a organização e é renovado silenciosamente pela interface.
+- **MFA.** Qualquer política de MFA configurada no Azure AD vale automaticamente — a Kruzer não duplica nem substitui.
+- **Audit log.** Logins via SSO são registrados no IAM com identificação do usuário, IP e timestamp.
+- **Validação de assinatura.** O `id_token` é validado contra as chaves públicas do tenant Microsoft a cada login.
+- **Sem Single Logout.** Logout no Kruzer encerra apenas a sessão Kruzer. Para sair também do Microsoft, o usuário precisa fazê-lo separadamente.
+
+---
+
+## Offboarding
+
+Sem SCIM, **desativar um usuário exige duas ações independentes**:
+
+1. **No Azure AD** — desativar/remover o usuário. Isso revoga imediatamente a capacidade de login via SSO.
+2. **No IAM Kruzer** — desativar ou remover o usuário. Isso revoga as permissões atribuídas e impede acesso por senha local (caso esteja habilitada).
+
+<Warning>
+  Desativar apenas no Azure AD **não revoga sessões Kruzer ativas** até a expiração do JWT. Para revogação imediata, desative o usuário também no IAM Kruzer.
+</Warning>
 
 ---
 
 ## Coexistência com Senha Local
 
-Organizações com SSO habilitado normalmente **desabilitam o login por senha local** para forçar o uso do provedor corporativo. Em casos específicos (ex.: contas de administradores externos), é possível manter senha local convivendo com SSO.
+Organizações com SSO habilitado normalmente **desabilitam o login por senha local** para forçar o uso do provedor corporativo. Em casos específicos — como contas de administradores externos, consultores ou *break-glass* em indisponibilidade do Azure AD — é possível manter senha local convivendo com SSO.
 
 > A configuração de qual modo está ativo é feita pelo time Kruzer junto com o administrador da organização.
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Usuário consegue logar no Microsoft, mas a Kruzer recusa">
+    Verifique se o email cadastrado no IAM Kruzer é **exatamente igual** ao `preferred_username` / UPN do usuário no Azure AD. Diferenças sutis (maiúsculas/minúsculas, domínio alternativo, alias) bloqueiam o match.
+  </Accordion>
+
+  <Accordion title="Erro AADSTS50011 — Redirect URI not registered">
+    A URL de callback informada pela Kruzer não foi cadastrada no App Registration, ou foi cadastrada com diferença (http vs https, trailing slash). Volte ao Azure AD em **App registrations → Authentication** e confirme o valor exato.
+  </Accordion>
+
+  <Accordion title="Login funcionava e parou — Client Secret expirado">
+    *Client Secrets* têm validade. Gere um novo em **Certificates & secrets**, envie ao time Kruzer para atualizar a configuração e revogue o antigo. Agende a próxima rotação no calendário do time.
+  </Accordion>
+
+  <Accordion title="Erro AADSTS65001 — Consent required">
+    A organização exige consentimento de admin para os escopos solicitados. Um Global Administrator deve clicar em **Grant admin consent** na aba *API permissions* do App Registration.
+  </Accordion>
+
+  <Accordion title="Usuário novo não consegue logar">
+    SSO não cria usuários automaticamente. Confirme que o usuário foi **cadastrado no IAM Kruzer** com o email correto antes de tentar o primeiro login.
+  </Accordion>
+
+  <Accordion title="Login bloqueado para todos da organização">
+    Provavelmente o *Client Secret* expirou, o App Registration foi excluído, ou políticas de Conditional Access no Azure AD bloquearam o app. Verifique nesta ordem. Mantenha uma conta com senha local para *break-glass*.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Perguntas Frequentes
+
+<AccordionGroup>
+  <Accordion title="A Kruzer suporta SAML 2.0?">
+    Não hoje. Apenas OIDC com Microsoft Entra ID. Suporte a SAML está em avaliação.
+  </Accordion>
+
+  <Accordion title="Suportam Google Workspace, Okta ou outros IdPs?">
+    Não hoje. Apenas Microsoft Entra ID (Azure AD).
+  </Accordion>
+
+  <Accordion title="É possível forçar o SSO como único método de login?">
+    Sim. O login por senha local pode ser desabilitado por organização, deixando o SSO como única forma de autenticação para usuários internos.
+  </Accordion>
+
+  <Accordion title="Como acessar a Kruzer se o Azure AD estiver indisponível?">
+    Recomendamos manter pelo menos **uma conta administrativa com senha local** como contingência (*break-glass*). Sem isso, indisponibilidade do Azure AD bloqueia todo o acesso à organização na Kruzer.
+  </Accordion>
+
+  <Accordion title="Posso ter mais de um tenant Azure AD na mesma organização Kruzer?">
+    Não hoje. Cada organização Kruzer integra com **um único tenant** Azure AD.
+  </Accordion>
+
+  <Accordion title="Existe provisionamento automático (SCIM)?">
+    Não hoje. Provisionamento é manual via IAM Kruzer. SCIM está em avaliação no roadmap.
+  </Accordion>
+
+  <Accordion title="Como funciona para contas externas (consultores, parceiros)?">
+    Mantenha o login por senha local habilitado em paralelo ao SSO. Contas externas usam senha local; colaboradores internos usam SSO.
+  </Accordion>
+
+  <Accordion title="Como auditar logins via SSO?">
+    Logins ficam registrados no audit log do IAM Kruzer, com identificação do usuário, timestamp e IP de origem.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Roadmap
+
+<Note>
+  Os itens abaixo estão **em avaliação**, sem prazo definido. Não devem ser considerados em decisões contratuais até serem anunciados oficialmente:
+
+  - Suporte a **SAML 2.0**
+  - **SCIM** para provisionamento automático de usuários
+  - Mapeamento de **grupos do Azure AD** para grupos/papéis da Kruzer
+  - Suporte a outros provedores de identidade (Google Workspace, Okta)
+</Note>
 
 ---
 
@@ -66,9 +302,9 @@ Organizações com SSO habilitado normalmente **desabilitam o login por senha lo
 
 <CardGroup cols={2}>
   <Card title="Autenticação" icon="right-to-bracket" href="/plataforma-kruzer/iam-autenticacao">
-    Visão geral de autenticação
+    Visão geral de autenticação e contas de serviço
   </Card>
   <Card title="Permissões" icon="users-gear" href="/plataforma-kruzer/iam-permissoes">
-    Modelo RBAC e gestão de papéis
+    Modelo RBAC, papéis e grupos
   </Card>
 </CardGroup>
