@@ -1,0 +1,1843 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "PIM API",
+    "description": "Product Information Management API for the Kruzer platform.\n\nBuilt on `@kruzer/sdk` (Koa). All endpoints follow consistent patterns\nfor authentication, pagination, filtering and error handling.\n",
+    "version": "1.0.2"
+  },
+  "servers": [
+    {
+      "url": "https://pim-api.{tenant}.krzlabs.io",
+      "description": "Ambiente Kruzer Labs (por tenant)",
+      "variables": {
+        "tenant": {
+          "default": "{{tenant}}",
+          "description": "Slug do tenant da sua organização. Substitua `{{tenant}}` pelo identificador fornecido pela Kruzer no momento da contratação."
+        }
+      }
+    },
+    {
+      "url": "http://localhost:3000",
+      "description": "Desenvolvimento local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "products"
+    },
+    {
+      "name": "imports"
+    },
+    {
+      "name": "exports"
+    },
+    {
+      "name": "product-approvals"
+    },
+    {
+      "name": "workflow-approvals"
+    },
+    {
+      "name": "categories"
+    },
+    {
+      "name": "brands"
+    },
+    {
+      "name": "catalogs"
+    },
+    {
+      "name": "families"
+    },
+    {
+      "name": "attribute-fields"
+    },
+    {
+      "name": "attribute-groups"
+    },
+    {
+      "name": "webhooks"
+    },
+    {
+      "name": "publishments"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/products": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "List products",
+        "description": "Returns a paginated list of products. Results are filtered by the\nauthenticated user's catalog access and user-group restrictions.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Sort"
+          },
+          {
+            "name": "filter[code]",
+            "in": "query",
+            "description": "Filter by product code (supports MongoDB operators, e.g. `filter[price][$gte]=100`).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of products",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductListResponse"
+                },
+                "example": {
+                  "data": [
+                    {
+                      "_id": "507f1f77bcf86cd799439011",
+                      "code": "PROD-001",
+                      "name": "Notebook Pro",
+                      "price": 3999.99,
+                      "deleted": false,
+                      "created_at": "2024-01-15T10:30:00.000Z",
+                      "updated_at": "2024-01-15T10:30:00.000Z"
+                    }
+                  ],
+                  "paging": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 150,
+                    "pages": 8
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Create a new product",
+        "parameters": [
+          {
+            "name": "_with_approval",
+            "in": "query",
+            "description": "When `true`, the product is created in draft state and an approval\nrequest is opened automatically based on the configured workflow.\n",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              },
+              "example": {
+                "code": "PROD-001",
+                "name": "Notebook Pro",
+                "price": 3999.99,
+                "categories": [
+                  "cat-1",
+                  "cat-2"
+                ],
+                "attributes": {
+                  "color": "red",
+                  "size": "large"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Product created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/v1/products/bulk": {
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Bulk create / update / delete products",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "operations"
+                ],
+                "properties": {
+                  "operations": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "action"
+                      ],
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "create",
+                            "update",
+                            "delete"
+                          ]
+                        },
+                        "_id": {
+                          "type": "string"
+                        },
+                        "data": {
+                          "$ref": "#/components/schemas/CreateProductRequest"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk operation result"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/products/count": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Count products matching a filter",
+        "parameters": [
+          {
+            "name": "filter[code]",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer",
+                          "example": 150
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/products/stream": {
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Stream products as NDJSON",
+        "description": "Returns products as newline-delimited JSON. Suitable for very large datasets.",
+        "responses": {
+          "200": {
+            "description": "NDJSON stream",
+            "content": {
+              "application/x-ndjson": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/products/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Get one product",
+        "responses": {
+          "200": {
+            "description": "Product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Update product",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Soft-delete product",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/products/multiple": {
+      "put": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Update multiple products at once",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "changes": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
+    },
+    "/v1/products/{id}/attributes": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Get product attributes",
+        "responses": {
+          "200": {
+            "description": "Product attributes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/products/{id}/generate-description": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Generate product description via AI",
+        "responses": {
+          "200": {
+            "description": "Generated description",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/products/{id}/generate-attribute": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Generate product attribute via AI",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated attribute value"
+          }
+        }
+      }
+    },
+    "/v1/products/{id}/catalogs": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Associate product with a catalog",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "catalog_id"
+                ],
+                "properties": {
+                  "catalog_id": {
+                    "type": "string"
+                  },
+                  "user_groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Association created"
+          }
+        }
+      }
+    },
+    "/v1/products/{id}/catalogs/{catalog_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        },
+        {
+          "name": "catalog_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "put": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Edit a product/catalog association",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user_groups": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "products"
+        ],
+        "summary": "Remove a product/catalog association",
+        "responses": {
+          "200": {
+            "description": "Removed"
+          }
+        }
+      }
+    },
+    "/v1/imports": {
+      "get": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "List imports",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Create import definition",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "example": "products"
+                  },
+                  "mapping": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Import created"
+          }
+        }
+      }
+    },
+    "/v1/imports/{id}/documents": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "List import documents",
+        "responses": {
+          "200": {
+            "description": "Documents"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Upload an import document (Excel)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Uploaded"
+          }
+        }
+      }
+    },
+    "/v1/imports/{id}/execute": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Execute import (async via Kafka)",
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      }
+    },
+    "/v1/imports/bulk-update": {
+      "post": {
+        "tags": [
+          "imports"
+        ],
+        "summary": "Bulk update imports",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
+    },
+    "/v1/exports": {
+      "get": {
+        "tags": [
+          "exports"
+        ],
+        "summary": "List exports",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "exports"
+        ],
+        "summary": "Create export definition",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "example": "products"
+                  },
+                  "filter": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/exports/{id}/execute": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "exports"
+        ],
+        "summary": "Execute export (async)",
+        "responses": {
+          "202": {
+            "description": "Accepted"
+          }
+        }
+      }
+    },
+    "/v1/exports/{id}/download": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "exports"
+        ],
+        "summary": "Download export file",
+        "responses": {
+          "200": {
+            "description": "File",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/product-approvals": {
+      "get": {
+        "tags": [
+          "product-approvals"
+        ],
+        "summary": "List product approval requests",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "product-approvals"
+        ],
+        "summary": "Create a product approval request",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/product-approvals/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "product-approvals"
+        ],
+        "summary": "Get approval details",
+        "responses": {
+          "200": {
+            "description": "Approval"
+          }
+        }
+      }
+    },
+    "/v1/product-approvals/{id}/approve": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "put": {
+        "tags": [
+          "product-approvals"
+        ],
+        "summary": "Approve a product approval request",
+        "responses": {
+          "200": {
+            "description": "Approved"
+          }
+        }
+      }
+    },
+    "/v1/product-approvals/{id}/reject": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "put": {
+        "tags": [
+          "product-approvals"
+        ],
+        "summary": "Reject a product approval request",
+        "responses": {
+          "200": {
+            "description": "Rejected"
+          }
+        }
+      }
+    },
+    "/v1/product-approvals/{id}/reopen": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "put": {
+        "tags": [
+          "product-approvals"
+        ],
+        "summary": "Reopen a closed approval",
+        "responses": {
+          "200": {
+            "description": "Reopened"
+          }
+        }
+      }
+    },
+    "/v1/product-approvals/{id}/lock": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "product-approvals"
+        ],
+        "summary": "Lock approval for editing",
+        "responses": {
+          "200": {
+            "description": "Locked"
+          }
+        }
+      }
+    },
+    "/v1/product-approvals/{id}/unlock": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "post": {
+        "tags": [
+          "product-approvals"
+        ],
+        "summary": "Unlock approval",
+        "responses": {
+          "200": {
+            "description": "Unlocked"
+          }
+        }
+      }
+    },
+    "/v1/workflow-approvals": {
+      "get": {
+        "tags": [
+          "workflow-approvals"
+        ],
+        "summary": "List workflow definitions",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "workflow-approvals"
+        ],
+        "summary": "Create a workflow definition",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/workflow-approvals/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "workflow-approvals"
+        ],
+        "summary": "Get workflow",
+        "responses": {
+          "200": {
+            "description": "Workflow"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "workflow-approvals"
+        ],
+        "summary": "Update workflow",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "workflow-approvals"
+        ],
+        "summary": "Delete workflow",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/categories": {
+      "get": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "List categories",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Create category",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/categories/tree": {
+      "get": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Get category tree",
+        "responses": {
+          "200": {
+            "description": "Tree"
+          }
+        }
+      }
+    },
+    "/v1/categories/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Get category",
+        "responses": {
+          "200": {
+            "description": "Category"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Update category",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "categories"
+        ],
+        "summary": "Delete category",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/brands": {
+      "get": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "List brands",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Create brand",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/brands/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Get brand",
+        "responses": {
+          "200": {
+            "description": "Brand"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Update brand",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "brands"
+        ],
+        "summary": "Delete brand",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/catalogs": {
+      "get": {
+        "tags": [
+          "catalogs"
+        ],
+        "summary": "List catalogs",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "catalogs"
+        ],
+        "summary": "Create catalog",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/catalogs/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "catalogs"
+        ],
+        "summary": "Get catalog",
+        "responses": {
+          "200": {
+            "description": "Catalog"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "catalogs"
+        ],
+        "summary": "Update catalog",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "catalogs"
+        ],
+        "summary": "Delete catalog",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/families": {
+      "get": {
+        "tags": [
+          "families"
+        ],
+        "summary": "List families",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "families"
+        ],
+        "summary": "Create family",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/families/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "families"
+        ],
+        "summary": "Get family",
+        "responses": {
+          "200": {
+            "description": "Family"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "families"
+        ],
+        "summary": "Update family",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "families"
+        ],
+        "summary": "Delete family",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/attribute-fields": {
+      "get": {
+        "tags": [
+          "attribute-fields"
+        ],
+        "summary": "List attribute fields",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "attribute-fields"
+        ],
+        "summary": "Create attribute field",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/attribute-fields/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "attribute-fields"
+        ],
+        "summary": "Get attribute field",
+        "responses": {
+          "200": {
+            "description": "Attribute field"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "attribute-fields"
+        ],
+        "summary": "Update attribute field",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "attribute-fields"
+        ],
+        "summary": "Delete attribute field",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/attribute-groups": {
+      "get": {
+        "tags": [
+          "attribute-groups"
+        ],
+        "summary": "List attribute groups",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "attribute-groups"
+        ],
+        "summary": "Create attribute group",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/attribute-groups/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "attribute-groups"
+        ],
+        "summary": "Get attribute group",
+        "responses": {
+          "200": {
+            "description": "Attribute group"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "attribute-groups"
+        ],
+        "summary": "Update attribute group",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "attribute-groups"
+        ],
+        "summary": "Delete attribute group",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/webhooks": {
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "List webhooks",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Create/upsert webhook",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/webhooks/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "get": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Get webhook",
+        "responses": {
+          "200": {
+            "description": "Webhook"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "webhooks"
+        ],
+        "summary": "Delete webhook",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/publishments": {
+      "get": {
+        "tags": [
+          "publishments"
+        ],
+        "summary": "List publishments",
+        "responses": {
+          "200": {
+            "description": "List"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "publishments"
+        ],
+        "summary": "Create publishment",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/v1/publishments/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdPath"
+        }
+      ],
+      "put": {
+        "tags": [
+          "publishments"
+        ],
+        "summary": "Update publishment",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT issued by the IAM service. Send as `Authorization: Bearer <token>`.\nService-account tokens are also accepted for inter-service calls.\n"
+      }
+    },
+    "parameters": {
+      "IdPath": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "MongoDB ObjectId (24 hex chars)."
+      },
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      },
+      "Sort": {
+        "name": "sort",
+        "in": "query",
+        "description": "Sort field. Prefix with `-` for descending. Example `-created_at`.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "BaseEntity": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "deleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_by": {
+            "type": "string"
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deleted_by": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Paging": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "limit": {
+            "type": "integer",
+            "example": 20
+          },
+          "total": {
+            "type": "integer",
+            "example": 150
+          },
+          "pages": {
+            "type": "integer",
+            "example": 8
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "integer"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreateProductRequest": {
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "PROD-001"
+          },
+          "name": {
+            "type": "string",
+            "example": "Notebook Pro"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "example": 3999.99
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "Product": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/BaseEntity"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "price": {
+                "type": "number"
+              },
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "attributes": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        ]
+      },
+      "ProductResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Product"
+          }
+        }
+      },
+      "ProductListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          "paging": {
+            "$ref": "#/components/schemas/Paging"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid JWT",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "status": 401,
+                "message": "Unauthorized"
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Authenticated user lacks the required permission",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "status": 403,
+                "message": "Forbidden"
+              }
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "status": 404,
+                "message": "Not found"
+              }
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Resource conflict (e.g. duplicate code)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "status": 409,
+                "message": "Already exists"
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Request body or query failed validation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": {
+                "status": 400,
+                "message": "Validation failed",
+                "details": [
+                  {
+                    "field": "name",
+                    "message": "Name is required"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

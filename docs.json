@@ -138,6 +138,16 @@
               "pim/funcionalidades/notificacoes",
               "pim/funcionalidades/master-data"
             ]
+          },
+          {
+            "group": "Referência da API",
+            "openapi": {
+              "source": "pim/api/openapi.json",
+              "directory": "pim/api"
+            },
+            "pages": [
+              "pim/api/visao-geral"
+            ]
           }
         ]
       }

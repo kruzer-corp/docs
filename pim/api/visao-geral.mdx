@@ -1,0 +1,78 @@
+---
+title: Visão Geral
+description: Introdução à API REST do PIM — autenticação, formato de respostas e convenções gerais.
+icon: book-open
+---
+
+A API do PIM é uma API REST construída sobre o `@kruzer/sdk`. Todos os endpoints seguem o mesmo conjunto de convenções para autenticação, paginação, filtros e tratamento de erros.
+
+## URL Base
+
+Cada tenant é exposto em um subdomínio dedicado de `krzlabs.io`:
+
+```
+https://pim-api.{tenant}.krzlabs.io
+```
+
+Exemplo: `https://pim-api.fastshop.krzlabs.io`. Em desenvolvimento, a API roda em `http://localhost:3000`. Todos os endpoints são versionados pelo prefixo `/v1/`.
+
+## Autenticação
+
+Envie o JWT emitido pelo IAM no header `Authorization`:
+
+```http
+Authorization: Bearer <jwt_token>
+```
+
+Tokens de service account também são aceitos para chamadas entre serviços e ignoram restrições de catálogo / grupos de usuário.
+
+## Formato de Resposta
+
+Respostas de sucesso são envelopadas em `data`:
+
+```json
+{
+  "data": { "_id": "...", "code": "PROD-001", "name": "..." }
+}
+```
+
+Listagens incluem também `paging`:
+
+```json
+{
+  "data": [ ... ],
+  "paging": { "page": 1, "limit": 20, "total": 150, "pages": 8 }
+}
+```
+
+Erros seguem o formato:
+
+```json
+{
+  "error": {
+    "status": 400,
+    "message": "Validation failed",
+    "details": [{ "field": "name", "message": "Name is required" }]
+  }
+}
+```
+
+## Paginação e Filtros
+
+| Parâmetro          | Descrição                                                         |
+| ------------------ | ----------------------------------------------------------------- |
+| `page`             | Número da página (1-indexed, default `1`).                        |
+| `limit`            | Itens por página (default `20`, máx `100`).                       |
+| `sort`             | Campo de ordenação. Prefixe com `-` para ordem descendente.       |
+| `filter[campo]`    | Filtra por campo. Aceita operadores MongoDB: `filter[price][$gte]=100`. |
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Conceitos do PIM" icon="lightbulb" href="/pim/conceitos/produtos-e-skus">
+    Entenda os modelos centrais do PIM antes de consumir a API.
+  </Card>
+  <Card title="Identidade e Acesso" icon="lock" href="/plataforma-kruzer/iam-autenticacao">
+    Como autenticar e gerenciar permissões.
+  </Card>
+</CardGroup>
