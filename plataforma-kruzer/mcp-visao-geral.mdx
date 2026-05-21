@@ -1,0 +1,87 @@
+---
+title: "MCP da Documentação"
+description: "Use toda a documentação da Kruzer como contexto vivo em assistentes de IA via Model Context Protocol"
+icon: "robot"
+---
+
+A documentação da Kruzer expõe um **servidor MCP** (Model Context Protocol) que permite a assistentes de IA — como Claude, Cursor, GitHub Copilot e ChatGPT — consultar todo o conteúdo desta doc em tempo real, com citações às páginas originais.
+
+Em vez de copiar e colar trechos da doc no chat, você conecta o MCP uma única vez e seu assistente passa a ter acesso direto a Plataforma, DevTools (iPaaS, API Gateway, CLI, IDK) e PIM, incluindo a referência da API.
+
+## O que é MCP
+
+O **Model Context Protocol** é um padrão aberto que define como assistentes de IA conversam com fontes externas de contexto (documentação, bancos de dados, APIs, sistemas internos). Um servidor MCP exibe ferramentas e recursos; o cliente (Claude, Cursor, etc.) decide quando consultá-los durante a conversa.
+
+O servidor MCP da Kruzer é **gerado automaticamente** pela Mintlify a partir desta documentação. Sempre que uma página é atualizada, o MCP reflete a mudança.
+
+---
+
+## Servidor da Kruzer
+
+<CardGroup cols={1}>
+  <Card title="Endpoint público" icon="link">
+    `https://kruzer.ai/docs/mcp`
+  </Card>
+</CardGroup>
+
+- **Transporte:** HTTP remoto (SSE) — não há binário para instalar localmente.
+- **Autenticação:** não requer credenciais; o conteúdo é público.
+- **Cobertura:** Plataforma, DevTools, PIM (incluindo a referência da API gerada do OpenAPI).
+
+---
+
+## O que você pode fazer
+
+<CardGroup cols={2}>
+  <Card title="Gerar código com o IDK" icon="code">
+    Peça ao assistente para escrever um Trigger ou Consumer usando `@kruzer/idk` — ele consulta a doc do IDK e dos data sources para usar as APIs corretas.
+  </Card>
+  <Card title="Consultar regras de IAM e SSO" icon="user-shield">
+    Tire dúvidas sobre autenticação JWT, papéis, contas de serviço e configuração de SSO sem sair do editor.
+  </Card>
+  <Card title="Descobrir endpoints do PIM" icon="boxes-stacked">
+    Pergunte "como crio um produto via API?" e receba o endpoint, payload e exemplo a partir da referência OpenAPI.
+  </Card>
+  <Card title="Entender o API Gateway" icon="shield">
+    Releases, policies, ambientes e publicação — direto no contexto da sua tarefa.
+  </Card>
+</CardGroup>
+
+---
+
+## Como funciona na prática
+
+<Steps>
+  <Step title="Você conecta o MCP no seu assistente">
+    Adiciona a URL `https://kruzer.ai/docs/mcp` no cliente (Claude, Cursor, VS Code, ChatGPT). Veja [Conectar o MCP](/plataforma-kruzer/mcp-instalacao).
+  </Step>
+  <Step title="Faz uma pergunta normal">
+    Ex.: *"Como configuro um trigger HTTP que consome uma fila Mongo na Kruzer?"*
+  </Step>
+  <Step title="O assistente busca na doc">
+    O cliente decide consultar o MCP, recupera as páginas relevantes (Triggers, Consumers, MongoDB data source) e responde com base nelas — citando os links originais.
+  </Step>
+</Steps>
+
+<Tip>
+  As respostas vêm com referências às páginas usadas, então é fácil aprofundar clicando no link citado.
+</Tip>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Conectar o MCP" icon="plug" href="/plataforma-kruzer/mcp-instalacao">
+    Instruções para Claude, Cursor, VS Code e ChatGPT
+  </Card>
+  <Card title="Quickstart DevTools" icon="rocket" href="/devtools/quickstart">
+    Comece a construir integrações com iPaaS e IDK
+  </Card>
+  <Card title="Quickstart PIM" icon="boxes-stacked" href="/pim/quickstart">
+    Configure seu primeiro catálogo de produtos
+  </Card>
+  <Card title="Visão Geral da Plataforma" icon="circle-nodes" href="/plataforma-kruzer/visao-geral">
+    Como os módulos da Kruzer se relacionam
+  </Card>
+</CardGroup>

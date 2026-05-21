@@ -26,6 +26,14 @@
               "plataforma-kruzer/iam-permissoes",
               "plataforma-kruzer/sso"
             ]
+          },
+          {
+            "group": "Assistentes de IA",
+            "icon": "robot",
+            "pages": [
+              "plataforma-kruzer/mcp-visao-geral",
+              "plataforma-kruzer/mcp-instalacao"
+            ]
           }
         ]
       },
