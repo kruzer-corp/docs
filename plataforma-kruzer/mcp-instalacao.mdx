@@ -1,0 +1,155 @@
+---
+title: "Conectar o MCP"
+description: "Configure o servidor MCP da documentação da Kruzer no seu assistente de IA"
+icon: "plug"
+---
+
+Esta página mostra como conectar o servidor MCP da documentação da Kruzer aos principais clientes do mercado. O endpoint é o mesmo em todos os casos:
+
+```
+https://kruzer.ai/docs/mcp
+```
+
+<Note>
+  O servidor é remoto (HTTP/SSE) e não exige autenticação. Não há binário para instalar localmente.
+</Note>
+
+---
+
+## Configuração por cliente
+
+<AccordionGroup>
+  <Accordion title="Claude Desktop" icon="desktop">
+    Adicione o servidor ao arquivo `claude_desktop_config.json`:
+
+    - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+    - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "kruzer-docs": {
+          "type": "http",
+          "url": "https://kruzer.ai/docs/mcp"
+        }
+      }
+    }
+    ```
+
+    Reinicie o Claude Desktop. O servidor `kruzer-docs` aparece no menu de ferramentas (ícone de plug) na barra inferior do chat.
+  </Accordion>
+
+  <Accordion title="Claude Code (CLI)" icon="terminal">
+    Adicione o servidor pelo terminal:
+
+    ```bash
+    claude mcp add --transport http kruzer-docs https://kruzer.ai/docs/mcp
+    ```
+
+    Verifique a conexão com:
+
+    ```bash
+    claude mcp list
+    ```
+
+    O `kruzer-docs` deve aparecer como `connected`.
+  </Accordion>
+
+  <Accordion title="Cursor" icon="code">
+    1. Abra **Settings → MCP** (ou `Cmd/Ctrl + ,` e busque por "MCP").
+    2. Clique em **Add new MCP server**.
+    3. Preencha:
+       - **Name:** `kruzer-docs`
+       - **Type:** `HTTP`
+       - **URL:** `https://kruzer.ai/docs/mcp`
+    4. Salve. O servidor aparece como ativo na lista.
+
+    Alternativamente, edite `~/.cursor/mcp.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "kruzer-docs": {
+          "url": "https://kruzer.ai/docs/mcp"
+        }
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="VS Code (GitHub Copilot Chat)" icon="microsoft">
+    Adicione ao `settings.json` (User ou Workspace):
+
+    ```json
+    {
+      "github.copilot.chat.mcp.servers": {
+        "kruzer-docs": {
+          "type": "http",
+          "url": "https://kruzer.ai/docs/mcp"
+        }
+      }
+    }
+    ```
+
+    Após salvar, abra o Copilot Chat e digite `@kruzer-docs` para forçar o uso do servidor em uma pergunta.
+
+    <Tip>
+      Se estiver usando a extensão **Continue** no lugar do Copilot, configure o mesmo endpoint em `~/.continue/config.json`, dentro do bloco `mcpServers`.
+    </Tip>
+  </Accordion>
+
+  <Accordion title="ChatGPT (Conector)" icon="comment-dots">
+    No ChatGPT (planos com suporte a conectores MCP):
+
+    1. Acesse **Settings → Connectors → Add connector**.
+    2. Escolha **Custom MCP server**.
+    3. Preencha:
+       - **Name:** `Kruzer Docs`
+       - **Server URL:** `https://kruzer.ai/docs/mcp`
+       - **Authentication:** `None`
+    4. Ative o conector na conversa para que o modelo possa consultar a doc.
+
+    O mesmo endpoint funciona ao criar um **Custom GPT** com a ação MCP habilitada.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Validando a conexão
+
+<Steps>
+  <Step title="Confirme que o servidor está listado">
+    No menu de ferramentas/MCP do seu cliente, o servidor `kruzer-docs` deve aparecer como conectado.
+  </Step>
+  <Step title="Faça uma pergunta de teste">
+    Experimente algo como:
+
+    *"Usando a doc da Kruzer, me explique como funciona um Trigger no iPaaS e mostre um exemplo mínimo com `@kruzer/idk`."*
+  </Step>
+  <Step title="Verifique as citações">
+    A resposta deve incluir links para páginas como `/devtools/plataforma/triggers` ou `/devtools/instalacao`. Se aparecerem, o MCP está ativo.
+  </Step>
+</Steps>
+
+<Tip>
+  Esta documentação também oferece **botões contextuais** em cada página (canto superior direito) para abrir o conteúdo diretamente no ChatGPT, Claude, Cursor ou VS Code — útil quando você quer levar apenas a página atual como contexto, sem conectar o MCP completo.
+</Tip>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="O que é o MCP da Kruzer" icon="robot" href="/plataforma-kruzer/mcp-visao-geral">
+    Visão geral, casos de uso e como funciona
+  </Card>
+  <Card title="Quickstart DevTools" icon="rocket" href="/devtools/quickstart">
+    Use o MCP para acelerar sua primeira integração
+  </Card>
+  <Card title="Referência da API PIM" icon="boxes-stacked" href="/pim/api/visao-geral">
+    Endpoints disponíveis via OpenAPI — também acessíveis pelo MCP
+  </Card>
+  <Card title="Visão Geral da Plataforma" icon="circle-nodes" href="/plataforma-kruzer/visao-geral">
+    Como os módulos da Kruzer se relacionam
+  </Card>
+</CardGroup>
