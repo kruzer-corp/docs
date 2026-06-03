@@ -133,6 +133,7 @@
               "pim/conceitos/familias-e-atributos",
               "pim/conceitos/categorias",
               "pim/conceitos/canais-e-publicacao",
+              "pim/conceitos/conteudo-por-canal",
               "pim/conceitos/workflow-de-aprovacao"
             ]
           },

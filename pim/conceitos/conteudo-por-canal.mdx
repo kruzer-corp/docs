@@ -1,0 +1,72 @@
+---
+title: "Conteúdo por Canal"
+description: "Como modelar conteúdo que varia por canal de venda no PIM e onde mora a lógica de exibição"
+icon: "arrows-split-up-and-left"
+---
+
+O PIM é a **fonte única** do produto, mas o mesmo produto frequentemente precisa de conteúdo diferente dependendo do canal de venda — um título otimizado para a VTEX, uma imagem para televendas e outra para o digital. Esta página explica como representar essas diferenças e qual é a fronteira de responsabilidade entre o PIM e a integração de cada canal.
+
+## O problema
+
+Um produto único pode exigir variações por canal, por exemplo:
+
+- **Título diferente por canal** — o nome no marketplace difere do nome interno.
+- **Imagem diferente por canal** — televendas exibe uma imagem; o digital, outra.
+- **Texto comercial diferente** — copy promocional específica de um marketplace.
+
+A fonte do produto continua sendo uma só; o que muda é o **conteúdo consumido por cada canal**.
+
+---
+
+## A abordagem: atributos distintos por canal
+
+Quando o conteúdo varia por canal, modele **atributos separados**, um por canal, reaproveitando o conceito de [Famílias e Atributos](/pim/conceitos/familias-e-atributos). Exemplos:
+
+- `Nome VTEX` — título específico para a VTEX.
+- `imagem_televendas` — imagem exibida no canal de televendas.
+- `imagem_digital` — imagem exibida nos canais digitais.
+
+Cada canal consome, no [mapeamento de campos](/pim/conceitos/canais-e-publicacao), o atributo de que precisa. O PIM mantém todos os valores centralizados e distribui para o destino certo, sem perder a fonte única do produto.
+
+<Tip>
+  Essa é a forma recomendada de lidar com exceções por canal: em vez de uma única propriedade com regras embutidas, crie atributos distintos e mapeie cada um para o canal correspondente. É flexível e explícito.
+</Tip>
+
+Esse padrão é a mesma base dos **Anúncios** (ver [Canais e Publicação](/pim/conceitos/canais-e-publicacao)), em que a entidade publicada carrega título, imagens e preços específicos do canal.
+
+---
+
+## Fronteira de responsabilidade
+
+<Warning>
+  O PIM **centraliza e distribui** o conteúdo. **Regras condicionais de exibição e de fallback** ficam na responsabilidade do **consumidor / integração do canal** — não do PIM.
+</Warning>
+
+Considere uma regra de exibição de imagem em um canal digital, com fallback em cascata:
+
+1. Se `TPLP_SG_PSICO != 'X'` **e** `CLPR_SQ_CLASPRD = 7` **e** tem imagem → usa a **imagem real**.
+2. Senão, se é genérico (`PRME_TP_CLASGEN = 'G'`) → usa `generico.jpg`.
+3. Senão, se é monitorado **e** psicotrópico → usa `medicamento.jpg`.
+4. Senão, se não tem imagem → usa `produto_sem_imagem.jpg`.
+5. Senão (ELSE) → usa a **imagem real**.
+
+Essa árvore de decisão **não é responsabilidade do PIM**. O PIM fornece os atributos (a imagem real, os flags de classificação, etc.); **a integração do canal** aplica a lógica condicional e escolhe o que exibir. Mantendo essa separação, o catálogo permanece limpo e reutilizável, e cada canal evolui suas próprias regras de negócio sem poluir a modelagem do produto.
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Famílias e Atributos" icon="list-tree" href="/pim/conceitos/familias-e-atributos">
+    Como criar e reusar os atributos por canal
+  </Card>
+  <Card title="Canais e Publicação" icon="rss" href="/pim/conceitos/canais-e-publicacao">
+    Mapeamento de campos e ciclo de publicação
+  </Card>
+  <Card title="DevTools (iPaaS)" icon="diagram-project" href="/devtools/visao-geral">
+    Onde implementar a lógica de integração do canal
+  </Card>
+  <Card title="API Gateway" icon="shield" href="/devtools/api-gateway/introducao">
+    Exposição e consumo dos dados por canal
+  </Card>
+</CardGroup>
