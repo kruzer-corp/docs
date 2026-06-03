@@ -1,0 +1,46 @@
+---
+title: "Trocas e Devoluções"
+description: "Gestão do pós-venda: solicitações de troca, devolução de produtos e reembolso ao cliente"
+icon: "arrow-rotate-left"
+---
+
+O módulo de Trocas e Devoluções cobre o ciclo de pós-venda no OMS — o que acontece depois que um pedido é concluído e o cliente precisa devolver um produto, trocar por outro ou receber um reembolso. É um fluxo separado do pedido original, com seu próprio ciclo de vida e regras de negócio.
+
+A gestão eficiente de devoluções e trocas impacta diretamente a experiência do cliente e a saúde financeira da operação. Um produto devolvido precisa ter seu estoque reabastecido na estratégia correta; um reembolso precisa ser registrado e vinculado ao pagamento original; uma troca precisa gerar um novo pedido sem criar inconsistências no inventário.
+
+## Solicitações de Devolução
+
+Uma solicitação de devolução é aberta a partir de um pedido concluído. O operador ou o próprio sistema registra os itens que serão devolvidos, o motivo da devolução e o tipo de resolução esperada — reembolso financeiro, crédito na conta do cliente ou troca por outro produto.
+
+A solicitação passa por um fluxo de aprovação antes de gerar qualquer movimentação de estoque ou financeira. Após aprovação, o retorno físico do produto é rastreado até a chegada na estratégia de destino, e o estoque é reabastecido automaticamente.
+
+## Trocas
+
+A troca combina uma devolução com a geração de um novo pedido. O OMS vincula os dois eventos — a devolução do item original e o pedido do item substituto — garantindo rastreabilidade do histórico e aplicação correta das regras comerciais. O cliente não paga novamente pelo item de mesmo valor; diferenças de preço para mais ou para menos são tratadas como cobrança adicional ou crédito, conforme a política da operação.
+
+## Reembolsos e Créditos
+
+O OMS registra o reembolso vinculado ao pedido e ao método de pagamento original. Para operações que utilizam crédito na conta do cliente, o saldo é gerenciado no módulo de Clientes e pode ser consultado e aplicado em pedidos futuros.
+
+Em casos de cancelamento com cupom utilizado, o OMS estorna automaticamente o uso do cupom, preservando o limite configurado para uso futuro pelo cliente.
+
+<Note>
+  O módulo de Trocas e Devoluções está em fase de especificação. As capacidades descritas aqui representam o escopo planejado para o go-live.
+</Note>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Ciclo de vida do pedido que origina a solicitação de devolução
+  </Card>
+  <Card title="Máquina de Estado" icon="circle-nodes" href="/oms/maquina-de-estado">
+    Estados e transições envolvidos no fluxo de devolução
+  </Card>
+  <Card title="Preços e Promoções" icon="tag" href="/oms/precos-promocoes-cupom">
+    Como cupons e descontos interagem com reembolsos
+  </Card>
+  <Card title="Relatórios e Dashboards" icon="chart-line" href="/oms/relatorios-e-dashboards">
+    Visibilidade sobre volumes e motivos de devolução
+  </Card>
+</CardGroup>

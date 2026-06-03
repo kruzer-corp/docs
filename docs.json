@@ -116,6 +116,31 @@
         ]
       },
       {
+        "tab": "OMS",
+        "groups": [
+          {
+            "group": "Visão Geral",
+            "pages": [
+              "oms/visao-geral"
+            ]
+          },
+          {
+            "group": "Módulos",
+            "pages": [
+              "oms/configuracao-base",
+              "oms/precos-promocoes-cupom",
+              "oms/pedidos",
+              "oms/trocas-e-devolucoes",
+              "oms/maquina-de-estado",
+              "oms/fulfillment",
+              "oms/dom",
+              "oms/transferencia-de-produto",
+              "oms/relatorios-e-dashboards"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "PIM",
         "groups": [
           {

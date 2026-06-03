@@ -1,0 +1,64 @@
+---
+title: "Configuração Base"
+description: "Entidades fundamentais que precisam existir para que o OMS opere ponta a ponta"
+icon: "sliders"
+---
+
+A Configuração Base reúne as entidades de cadastro que sustentam toda a operação do OMS. Antes que qualquer pedido possa ser recebido, roteado e executado, é necessário que essas entidades estejam criadas e ativas para o account. É o ponto de partida obrigatório de qualquer implantação.
+
+O módulo está dividido em dois grupos: entidades com gerenciamento completo pela interface administrativa (Estratégias, Clusters, Canais, Transportadoras e Operadores) e entidades alimentadas exclusivamente por integração externa (Catálogo e Estoque), nas quais a interface oferece apenas consulta e configuração mínima.
+
+## Estratégias
+
+Estratégias representam os pontos de fulfillment da operação — lojas físicas, centros de distribuição, dark stores ou sellers. Cada estratégia é o nó operacional onde o estoque está posicionado, onde os operadores atuam e onde o DOM Engine irá alocar pedidos. Toda a rastreabilidade de execução está vinculada à estratégia responsável pelo atendimento.
+
+O cadastro de uma estratégia inclui código único, tipo, status e o cluster ao qual pertence. Estratégias podem ser ativadas, editadas e desativadas pelo administrador. Enquanto uma estratégia estiver ativa, ela é elegível para receber alocações do DOM.
+
+## Clusters
+
+Clusters são agrupadores lógicos de estratégias. Servem para organizar operacionalmente os pontos de fulfillment — por exemplo, "Lojas SP Capital" ou "CDs Nordeste" — e funcionam como referência nas regras de roteamento do DOM, quando a decisão deve se aplicar a um conjunto de estratégias em vez de a uma unidade específica. O cadastro de um cluster exige apenas nome, código e cor de identificação visual.
+
+## Canais
+
+Canais são os pontos de entrada de demanda no OMS — as origens dos pedidos. Exemplos típicos incluem marketplaces como iFood e Rappi, plataformas de e-commerce como VTEX, aplicativos próprios, frentes de caixa (POS) e integrações diretas via API. O `channel_code` faz parte da chave de idempotência do pedido, garantindo que a mesma compra não seja processada duas vezes, mesmo que chegue por caminhos distintos.
+
+Sem ao menos um canal ativo, o OMS não ingere pedidos. O gerenciamento de canais inclui criação, edição, ativação e desativação.
+
+## Transportadoras
+
+Transportadoras representam os serviços de entrega utilizados na operação — sejam frota própria, operadoras logísticas contratadas ou parceiros de última milha. Cada transportadora cadastrada pode ser vinculada a estratégias e utilizada pelo DOM para selecionar o melhor serviço de entrega com base nas regras configuradas. Sem transportadoras ativas, o sistema não consegue executar a etapa de despacho das entregas.
+
+## Operadores
+
+Operadores são os usuários responsáveis pela execução física do fulfillment — os profissionais de picking, packing e expedição que atuam dentro de cada estratégia. O cadastro de operadores permite que o OMS atribua tarefas e registre rastreabilidade de execução, identificando quem realizou cada etapa do processo.
+
+## Catálogo
+
+O Catálogo no OMS é um read-model operacional — uma cópia local das informações de produto, independente da fonte de origem. Ele é alimentado exclusivamente por integração externa (ERP, PIM ou iPaaS) via chamadas REST de upsert, e não possui formulário de criação ou edição na interface administrativa.
+
+A sua função é enriquecer os itens dos pedidos e disponibilizar uma listagem de produtos para consulta operacional. O status de ativo ou inativo de cada produto é controlado pela fonte de origem. O OMS apenas reflete esse estado.
+
+## Estoque
+
+O Estoque também é um read-model, sincronizado a partir do ERP ou WMS via snapshots e atualizações incrementais. A interface administrativa permite apenas consultar os níveis atuais e configurar o `safety_stock` — um limite de reserva mínima que o DOM respeita ao calcular disponibilidade. O OMS nunca altera o estoque diretamente; qualquer movimentação parte do sistema de origem.
+
+<Note>
+  Configuração Base é pré-requisito para todas as demais funcionalidades do OMS. Enquanto essas entidades não estiverem configuradas para um account, pedidos não fluem ponta a ponta.
+</Note>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="DOM" icon="route" href="/oms/dom">
+    Como o motor de roteamento usa estratégias e estoques para decidir o atendimento
+  </Card>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Ciclo de vida do pedido após a configuração base estar pronta
+  </Card>
+  <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
+    Configure os pipelines operacionais por estratégia
+  </Card>
+  <Card title="Preços e Promoções" icon="tag" href="/oms/precos-promocoes-cupom">
+    Tabelas de preço e campanhas comerciais
+  </Card>
+</CardGroup>

@@ -1,0 +1,52 @@
+---
+title: "Relatórios e Dashboards"
+description: "Visibilidade operacional e indicadores de desempenho da operação de pedidos e fulfillment"
+icon: "chart-line"
+---
+
+O módulo de Relatórios e Dashboards oferece ao time operacional e às lideranças a visibilidade necessária para monitorar a saúde da operação, identificar gargalos e tomar decisões com base em dados. As informações são consolidadas a partir dos eventos gerados ao longo de todo o ciclo de vida dos pedidos, entregas, estoques e transferências.
+
+A camada de visualização é organizada por perfil de uso: dashboards operacionais para quem acompanha a execução em tempo real e relatórios analíticos para quem precisa de recortes históricos e comparativos.
+
+## Dashboard Operacional
+
+O dashboard operacional exibe o estado atual da operação em tempo real: volume de pedidos por status, pedidos em atraso em relação ao SLA, estratégias com maior concentração de filas e alertas de estoque crítico. É a tela de controle do supervisor de operações durante o dia a dia.
+
+Os indicadores são filtráveis por canal, estratégia, cluster e período, permitindo que equipes responsáveis por diferentes partes da operação tenham uma visão segmentada sem perder o contexto geral.
+
+## Desempenho de Fulfillment
+
+Os relatórios de fulfillment consolidam métricas de execução por estratégia: tempo médio por etapa do pipeline, taxa de remanejamento, taxa de rejeição parcial e volume de pedidos concluídos versus cancelados. Esses dados permitem identificar estratégias com desempenho abaixo do esperado e orientar ações corretivas de capacidade ou processo.
+
+## Análise de Pedidos
+
+Os relatórios de pedidos oferecem recortes por canal, status, prioridade e período. É possível analisar o volume de pedidos recebidos versus atendidos, o ticket médio por canal, a distribuição de itens por SKU e o tempo médio do ciclo ponta a ponta — da entrada do pedido até a conclusão da entrega.
+
+## Estoque e Disponibilidade
+
+Os relatórios de estoque mostram os níveis atuais por estratégia, a evolução histórica do inventário e a taxa de acerto do DOM — quantas vezes o motor encontrou estoque disponível na primeira tentativa de roteamento. Também é possível visualizar o impacto das transferências de produto no reequilíbrio da rede.
+
+## Devoluções e Pós-venda
+
+Os relatórios de pós-venda consolidam o volume de solicitações de troca e devolução, os motivos mais frequentes, o tempo de resolução e o impacto financeiro em reembolsos e créditos. Esses dados alimentam decisões de produto e de atendimento ao cliente.
+
+<Note>
+  O módulo de Relatórios e Dashboards está em fase de especificação. As capacidades descritas aqui representam o escopo planejado para o go-live.
+</Note>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Fonte primária dos dados de volume e ciclo de vida
+  </Card>
+  <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
+    Métricas de execução por pipeline e estratégia
+  </Card>
+  <Card title="DOM" icon="route" href="/oms/dom">
+    Taxa de atendimento e eficiência de roteamento
+  </Card>
+  <Card title="Trocas e Devoluções" icon="arrow-rotate-left" href="/oms/trocas-e-devolucoes">
+    Volume e motivos de devolução para análise de pós-venda
+  </Card>
+</CardGroup>

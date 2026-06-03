@@ -21,7 +21,7 @@ Armadilhas e cuidados específicos ao trabalhar neste repositório de documenta�
 ### 3. MDX quebra com chaves `{` e `<` em texto livre
 **Sintoma:** build do `mint dev` falha com erro de parser; ou trecho some da renderização.
 **Causa:** MDX interpreta `{...}` como expressão JS e `<Tag>` como JSX.
-**Solução:** escapar com crase (\`{\`), com `&#123;` HTML, ou envolver em bloco de código. Para `<` literal, usar `&lt;` ou bloco de código.
+**Solução:** escapar com crase (`` `{` ``), com `&#123;` HTML, ou envolver em bloco de código. Para `<` literal, usar `&lt;` ou bloco de código.
 **Exemplo problemático:** documentar URL templates como `/customers/{id}` em texto livre — preferir bloco inline `` `/customers/{id}` ``.
 
 ### 4. Ícone Font Awesome inválido renderiza em branco

@@ -1,0 +1,56 @@
+---
+title: "Máquina de Estado"
+description: "Ciclo de vida controlado de pedidos e entregas — estados fixos, transições auditáveis e regras de negócio imutáveis"
+icon: "circle-nodes"
+---
+
+O OMS opera com uma máquina de estado que garante que todo pedido e toda entrega percorram um ciclo de vida rastreável, controlado e auditável. Nenhum estado pode ser pulado e nenhuma transição pode ocorrer fora das regras definidas. Essa camada é fixa e obrigatória para qualquer operação — independente do canal, do cliente ou da configuração de fulfillment adotada.
+
+O OMS mantém duas máquinas de estado independentes que coexistem e se comunicam: a do **Pedido** e a da **Entrega** (FulfillmentOrder). Cada uma tem seu próprio ciclo e semântica de negócio.
+
+## Pedido
+
+O ciclo de vida do pedido representa a experiência do cliente — é a visão consolidada da compra, da confirmação até o encerramento.
+
+Os estados do pedido são:
+
+- **Criado** — pedido recebido, aguardando confirmação de pagamento. Nenhuma operação de fulfillment é iniciada.
+- **Pago** — pagamento confirmado. O DOM Engine é notificado para iniciar a alocação das entregas.
+- **Faturado** — ao menos uma nota fiscal foi emitida. O pedido está em processo ativo de entrega.
+- **Concluído** — todas as entregas foram concluídas. O pedido é encerrado e nenhuma ação adicional é permitida.
+- **Cancelado** — pedido encerrado negativamente. Todas as entregas ativas são canceladas automaticamente.
+
+As transições entre estados seguem regras estritas. A passagem de Criado para Pago ocorre automaticamente mediante confirmação de pagamento vinda do canal. O cancelamento a partir do estado Pago só é permitido por um Supervisor e apenas se nenhuma entrega já estiver em estágio de faturamento. Uma vez Faturado, o pedido só pode avançar para Concluído.
+
+## Entrega (FulfillmentOrder)
+
+A entrega representa a execução operacional. Um único pedido pode gerar até três entregas simultâneas — resultado de um split por estratégia, por transportadora ou por restrição de produto. Cada entrega tem seu próprio ciclo de vida e seu próprio ponto de fulfillment responsável.
+
+Os estados da entrega cobrem o fluxo desde a alocação pelo DOM até a conclusão: alocada, em separação, em embalagem, faturada, em trânsito, entregue. Estados de exceção — como cancelada e devolvida — são representados como saídas alternativas ao fluxo nominal.
+
+A propagação entre as duas máquinas ocorre em momentos específicos. Quando a primeira nota fiscal de qualquer entrega é emitida, o pedido avança automaticamente para Faturado. Quando todas as entregas chegam ao estado Entregue, o pedido avança para Concluído.
+
+## Controle de Transições
+
+Cada transição é associada a um perfil de permissão — sistema, operador ou supervisor — e a condições de negócio verificadas em tempo real. O OMS registra em log toda transição realizada: quem executou, quando, a partir de qual estado e para qual estado. Esse histórico é imutável e acessível pelo painel de detalhe do pedido.
+
+<Note>
+  Os estados e transições da máquina de estado são fixos e não podem ser removidos ou renomeados por configuração. O cliente pode personalizar o fluxo visual operacional por cima dessa camada via Fulfillment, mas a máquina de negócio subjacente é imutável.
+</Note>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
+    Configure o fluxo visual operacional (pipeline) por cima da máquina de estado
+  </Card>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Ações disponíveis por perfil em cada estado do pedido
+  </Card>
+  <Card title="DOM" icon="route" href="/oms/dom">
+    Como o DOM aloca entregas após o pagamento ser confirmado
+  </Card>
+  <Card title="Trocas e Devoluções" icon="arrow-rotate-left" href="/oms/trocas-e-devolucoes">
+    Estados envolvidos no fluxo de devolução e troca
+  </Card>
+</CardGroup>
