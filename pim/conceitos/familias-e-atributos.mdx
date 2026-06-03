@@ -59,6 +59,21 @@ Cada atributo carrega:
 
 ---
 
+## Atributos de Mídia (Imagem / Vídeo / Arquivo)
+
+Atributos do tipo **Imagem / Vídeo / Arquivo** guardam mídia vinculada ao produto. A hospedagem é **nativa e flexível** — você escolhe a forma que se encaixa no seu fluxo:
+
+- **Upload do arquivo**: ao subir o arquivo, o PIM hospeda no nosso bucket e armazena a referência da **URL pública**. Não há dependência de uma URL externa do cliente — a Kruzer cuida do armazenamento e da entrega.
+- **URL externa**: se a imagem já vive em um CDN ou storage do cliente, o PIM também aceita apenas a **referência da URL**, sem precisar reupload.
+
+<Tip>
+  O PIM funciona nos dois sentidos: você pode subir o arquivo (hospedagem na Kruzer) **ou** apontar para uma URL externa. Os dois modos convivem no mesmo catálogo.
+</Tip>
+
+Quando o conteúdo de mídia precisa **variar por canal de venda** (ex.: uma imagem para televendas e outra para o digital), o caminho é modelar atributos distintos por canal — veja [Conteúdo por Canal](/pim/conceitos/conteudo-por-canal).
+
+---
+
 ## Grupos de Atributos
 
 Em famílias com muitos atributos, fica útil agrupá-los para organização visual e lógica. Os **Grupos de Atributos** são containers que reúnem atributos relacionados:
