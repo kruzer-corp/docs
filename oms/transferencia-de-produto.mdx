@@ -1,0 +1,46 @@
+---
+title: "Transferência de Produto"
+description: "Movimentação de estoque entre estratégias para reequilibrar a rede de fulfillment"
+icon: "truck-fast"
+---
+
+O módulo de Transferência de Produto gerencia a movimentação de itens entre estratégias da rede de fulfillment. Quando o estoque está concentrado em um ponto enquanto outro enfrenta ruptura, a transferência é o mecanismo que reequilibra a disponibilidade sem depender de uma nova entrada de mercadoria do fornecedor.
+
+Transferências bem executadas aumentam a taxa de atendimento do DOM, reduzem o número de pedidos não roteados por falta de estoque e evitam o custo de envio de produtos de fontes externas quando o item já existe em outro ponto da própria rede.
+
+## Criação de Transferência
+
+Uma transferência é criada a partir de uma estratégia de origem e uma estratégia de destino, com a lista de itens e quantidades a serem movimentadas. O OMS valida a disponibilidade do estoque na origem antes de confirmar a operação. O estoque é reservado na origem no momento da criação e transferido para o destino apenas quando a movimentação é concluída fisicamente.
+
+O ciclo de vida de uma transferência passa pelas etapas de solicitação, aprovação, separação dos itens na origem, expedição, recebimento no destino e conclusão. Cada etapa é registrada com usuário responsável e carimbo de data e hora.
+
+## Impacto no Estoque e no DOM
+
+Enquanto uma transferência está em andamento, os itens reservados na origem não estão disponíveis para novos pedidos. O DOM considera apenas o estoque comprometível — o que está disponível menos as reservas de pedidos ativos e transferências em curso. Isso evita dupla alocação e garante consistência entre o que o sistema enxerga e o que está fisicamente disponível.
+
+Quando a transferência é concluída, o estoque é acrescido na estratégia de destino e a reserva é liberada na origem. O DOM passa a considerar o novo saldo imediatamente nas decisões de roteamento seguintes.
+
+## Visibilidade
+
+O painel de transferências exibe todas as movimentações em andamento e concluídas, com filtros por estratégia de origem, destino, status e período. O histórico completo de cada transferência — com os itens, quantidades, responsáveis e datas de cada etapa — fica disponível para consulta e auditoria.
+
+<Note>
+  O módulo de Transferência de Produto está em fase de especificação. As capacidades descritas aqui representam o escopo planejado para o go-live.
+</Note>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Configuração Base" icon="sliders" href="/oms/configuracao-base">
+    Estratégias e estoques envolvidos nas transferências
+  </Card>
+  <Card title="DOM" icon="route" href="/oms/dom">
+    Como o saldo de estoque influencia as decisões de roteamento
+  </Card>
+  <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
+    Operação de separação e expedição na estratégia de origem
+  </Card>
+  <Card title="Relatórios e Dashboards" icon="chart-line" href="/oms/relatorios-e-dashboards">
+    Visibilidade sobre movimentações de estoque e níveis por estratégia
+  </Card>
+</CardGroup>

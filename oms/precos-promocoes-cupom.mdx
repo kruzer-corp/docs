@@ -1,0 +1,50 @@
+---
+title: "Preços, Promoções e Cupons"
+description: "Camada comercial do OMS: tabelas de preço, campanhas promocionais e códigos de desconto"
+icon: "tag"
+---
+
+O OMS centraliza toda a camada comercial que determina quanto cada item custa e quais descontos se aplicam no momento da compra. Esse módulo é composto por três elementos que atuam em sequência: as tabelas de preço, que definem o preço base; as promoções, que aplicam descontos automáticos por regras; e os cupons, que aplicam descontos acionados pelo cliente com um código. Juntos, eles eliminam a necessidade de cada canal gerenciar sua própria régua de preços e garantem consistência na aplicação de campanhas em toda a rede.
+
+## Tabelas de Preço
+
+As tabelas de preço chegam ao OMS via integração com o ERP — não há criação manual de tabelas pela interface administrativa. Cada tabela possui um código único por account e armazena, para cada item, três valores: o custo (interno, não distribuído para canais), o preço de lista ("de") e o preço de venda ("por"). É possível configurar vigência por item, permitindo rebaixas pontuais sem a necessidade de criar uma nova tabela.
+
+Uma estratégia pode ter uma tabela de preços primária e tabelas de fallback com prioridade definida. Canais específicos dentro de uma estratégia podem ter sua própria tabela, que sobrescreve a tabela primária apenas para aquele canal. Essa flexibilidade permite que uma mesma operação pratique preços diferentes por canal — iFood, VTEX e loja física, por exemplo — sem duplicar estruturas.
+
+## Promoções
+
+As promoções permitem que o time comercial configure campanhas de desconto diretamente no OMS, sem dependência de desenvolvimento. A criação segue um assistente em três passos.
+
+No primeiro passo, são definidos os dados básicos da promoção: nome, status, descrição, período de vigência e recorrência opcional. No segundo passo, é configurada a elegibilidade — quais clusters ou estratégias participam da campanha, com opções de inclusão ou exclusão. No terceiro passo, são definidas as regras: as condições de produto que ativam a promoção (Bloco A) e o benefício concedido ao cliente (Bloco B).
+
+As promoções são aplicadas automaticamente pelo OMS no momento da criação do pedido, sem que o cliente precise informar nenhum código.
+
+## Cupons
+
+O módulo de cupons permite criar e distribuir códigos de desconto com regras controladas. Um cupom define o tipo de desconto (percentual ou valor fixo), o valor, o período de vigência, os canais e produtos aplicáveis, e os limites de uso total e por cliente.
+
+Existem dois tipos de cupom. O cupom único usa um único código compartilhado por múltiplos clientes, com um limite total de resgates configurável — adequado para campanhas de massa como `BLACKFRIDAY10`. O cupom multi-uso gera um lote de códigos individuais, cada um válido para uso único, adequado para distribuição personalizada pelo time de atendimento.
+
+O cupom é aplicado como última etapa do pipeline de preço, após a promoção. Por isso, o desconto final de um pedido pode combinar uma promoção automática com um cupom — desde que a promoção permita acumulação. Dois cupons, no entanto, nunca são acumuláveis no mesmo pedido. Em caso de cancelamento do pedido, o cupom utilizado é automaticamente estornado, preservando o limite de uso.
+
+<Tip>
+  Toda a rastreabilidade de uso de cupom fica registrada no OMS: qual pedido utilizou, em qual canal, quando e por qual cliente.
+</Tip>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Configuração Base" icon="sliders" href="/oms/configuracao-base">
+    Estratégias e canais que precisam existir antes de vincular tabelas de preço
+  </Card>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Como preço e desconto são aplicados no momento da criação do pedido
+  </Card>
+  <Card title="DOM" icon="route" href="/oms/dom">
+    Como a estratégia selecionada pelo DOM influencia a tabela de preço aplicada
+  </Card>
+  <Card title="Trocas e Devoluções" icon="arrow-rotate-left" href="/oms/trocas-e-devolucoes">
+    Impacto de reembolsos e créditos em pedidos com desconto
+  </Card>
+</CardGroup>

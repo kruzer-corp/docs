@@ -1,0 +1,58 @@
+---
+title: "DOM"
+description: "Motor de roteamento distribuído — decide qual estratégia atende cada pedido, de forma automática e auditável"
+icon: "route"
+---
+
+O DOM Engine é o motor de decisão do OMS. É ele que transforma um pedido recebido em uma operação de fulfillment concreta: decide de qual estratégia o pedido será atendido, qual transportadora será utilizada e se o pedido deve ser fragmentado em múltiplas entregas. Sem o DOM, o OMS registra pedidos mas não os operacionaliza. Com ele, o OMS torna-se um sistema de decisão capaz de maximizar a taxa de atendimento, reduzir custos logísticos e garantir que cada pedido seja atendido pelo ponto mais adequado da rede.
+
+## Como o DOM Decide
+
+Dado um pedido, o DOM avalia as estratégias disponíveis em sequência, eliminando as que não atendem cada critério. As estratégias que passam por todas as etapas são candidatas ao atendimento; o DOM seleciona a melhor entre elas com base nas regras de seleção configuradas.
+
+**1. Disponibilidade de estoque** — a estratégia tem os itens do pedido disponíveis para comprometer neste momento? Estratégias sem estoque suficiente são eliminadas.
+
+**2. Capacidade de entrega** — a estratégia consegue entregar no CEP de destino dentro do prazo da modalidade selecionada? Estratégias sem cobertura geográfica ou fora do SLA são eliminadas.
+
+**3. Critérios de seleção** — entre as estratégias que passaram nos dois primeiros filtros, quais são elegíveis conforme as regras configuradas? Aqui entram priorização, restrições de produto e regras de negócio específicas.
+
+A decisão é registrada com rastreabilidade completa: quais estratégias foram avaliadas, por que cada uma foi eliminada ou selecionada e qual regra determinou o resultado final.
+
+## Regras de Roteamento
+
+As regras de roteamento configuram o comportamento do DOM para cada operação. Elas permitem definir critérios de seleção entre estratégias elegíveis — por exemplo, preferir a estratégia mais próxima do CEP de entrega, ou a que tem menor custo logístico, ou a que está com menor ocupação operacional.
+
+Múltiplas regras podem coexistir com ordem de prioridade definida. O DOM aplica as regras em sequência até encontrar uma estratégia válida.
+
+## Restrição Geográfica
+
+A restrição geográfica define quais CEPs ou regiões cada estratégia consegue atender, por modalidade de entrega. Uma estratégia pode atender entregas expressas apenas dentro de um raio específico e entregas padrão em uma área mais ampla. O DOM respeita essas restrições automaticamente ao avaliar cobertura.
+
+## Prateleira Infinita
+
+A prateleira infinita permite que o DOM considere estratégias sem estoque próprio como elegíveis, desde que haja um fornecedor ou CD capaz de abastecer a estratégia no prazo. É um mecanismo de extensão de cobertura que reduz a taxa de pedidos não atendidos por ruptura de estoque local.
+
+## Ações de Falha
+
+Quando o DOM não encontra nenhuma estratégia elegível para atender um pedido, entram em ação as regras de falha configuradas. O operador define o comportamento esperado: aguardar reposição de estoque, acionar prateleira infinita, parcelar o pedido em múltiplas estratégias ou escalar para intervenção manual.
+
+## Simulador de Roteamento
+
+O simulador permite que o time operacional teste cenários antes de colocá-los em produção: dado um pedido hipotético, qual estratégia o DOM selecionaria com as regras atuais? O simulador responde com o mesmo algoritmo de decisão usado em produção, incluindo o detalhamento de cada etapa de eliminação.
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Configuração Base" icon="sliders" href="/oms/configuracao-base">
+    Estratégias, clusters e estoques que o DOM usa para decidir
+  </Card>
+  <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
+    O que acontece após o DOM alocar um pedido a uma estratégia
+  </Card>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Remanejamento manual quando a decisão automática precisa ser corrigida
+  </Card>
+  <Card title="Transferência de Produto" icon="truck-fast" href="/oms/transferencia-de-produto">
+    Movimentação de estoque entre estratégias que abastece as decisões do DOM
+  </Card>
+</CardGroup>

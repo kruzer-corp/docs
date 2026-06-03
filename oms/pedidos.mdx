@@ -1,0 +1,58 @@
+---
+title: "Pedidos"
+description: "Gestão completa do ciclo de vida de pedidos — do recebimento até o encerramento"
+icon: "bag-shopping"
+---
+
+O Pedido é a entidade central do OMS. Tudo gira em torno dele: o estoque é reservado para ele, as entregas são geradas a partir dele e o cliente é identificado por ele. Cada compra que entra no sistema — seja via integração de canal, via API ou criada manualmente — precisa ser recebida, validada, priorizada, roteada e acompanhada até a conclusão.
+
+Um pedido reúne quem comprou, o que comprou, como pagou, onde deve ser entregue, por qual canal chegou, em que estado se encontra e qual é a sua prioridade. O OMS nunca duplica pedidos no split: um pedido pode gerar múltiplas entregas operacionais, mas o cliente sempre enxerga uma única compra.
+
+## Recebimento de Pedidos
+
+Pedidos chegam ao OMS por três caminhos: integração com canais de venda (iFood, Rappi, VTEX, NCR e outros), chamada direta à API ou criação manual pelo operador no painel administrativo.
+
+A identidade de um pedido no OMS é definida pela combinação do identificador externo, do canal e do account. Essa tríade garante idempotência: se o mesmo pedido for enviado duas vezes pelo canal, o OMS retorna o registro existente sem criar duplicatas. O estoque dos itens é reservado imediatamente na entrada do pedido e só é liberado em caso de cancelamento ou conclusão da entrega.
+
+## Listagem e Priorização
+
+A listagem de pedidos oferece filtros por canal, status, período, prioridade, estratégia e cliente. A priorização é dinâmica: cada pedido carrega um score numérico calculado automaticamente com base em critérios como SLA, segmento do cliente e restrições do pedido. Esse score determina o nível de prioridade (CRITICAL, HIGH, MEDIUM ou LOW) e pode ser sobrescrito manualmente por um supervisor quando a situação operacional exigir.
+
+## Detalhe do Pedido
+
+O detalhe de um pedido exibe o estado atual, o histórico completo de transições, os itens com preços e descontos aplicados, as informações de pagamento, o endereço de entrega e faturamento, as entregas vinculadas e as anotações registradas pelo time operacional. Todas as ações disponíveis para aquele pedido são exibidas de acordo com o perfil do usuário e o estado atual.
+
+## Criação Manual
+
+O OMS permite que supervisores criem pedidos diretamente pelo painel, sem que a compra precise vir de um canal externo. Esse fluxo é utilizado para atendimentos especiais, pedidos de balcão ou reposições operacionais. A criação manual segue as mesmas regras de validação da entrada via integração: reserva de estoque, verificação de catálogo e aplicação de preço e desconto.
+
+## Ações Operacionais
+
+Ao longo do ciclo de vida, diferentes ações estão disponíveis dependendo do estado do pedido e do perfil do operador:
+
+- **Cancelamento** — encerra o pedido negativamente, libera o estoque reservado e cancela todas as entregas ativas. Disponível até determinados estados, conforme as regras da máquina de estado.
+- **Remanejamento** — move o pedido para uma estratégia diferente da originalmente alocada pelo DOM. Indicado quando a estratégia original não consegue atender por razão operacional.
+- **Edição** — permite ajustar informações do pedido antes que a operação de fulfillment avance para estágios irreversíveis.
+- **Antifraude** — registra a análise de risco e bloqueia ou libera pedidos suspeitos para prosseguimento.
+- **Split** — divide o pedido em múltiplas entregas quando os itens precisam ser atendidos por estratégias diferentes.
+
+## Workflow do Pedido
+
+Cada pedido carrega um snapshot do workflow de fulfillment no momento da sua criação. Mudanças futuras no workflow configurado da operação não retroagem a pedidos já existentes, garantindo previsibilidade operacional.
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Máquina de Estado" icon="circle-nodes" href="/oms/maquina-de-estado">
+    Estados fixos e regras de transição do ciclo de vida do pedido
+  </Card>
+  <Card title="DOM" icon="route" href="/oms/dom">
+    Como o motor de roteamento aloca entregas para cada pedido
+  </Card>
+  <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
+    O fluxo operacional de execução de cada entrega
+  </Card>
+  <Card title="Trocas e Devoluções" icon="arrow-rotate-left" href="/oms/trocas-e-devolucoes">
+    O que acontece após a conclusão de um pedido
+  </Card>
+</CardGroup>

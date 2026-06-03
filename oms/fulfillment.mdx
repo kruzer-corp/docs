@@ -1,0 +1,48 @@
+---
+title: "Fulfillment"
+description: "Configuração de pipelines operacionais e gestão do ciclo de vida das entregas"
+icon: "warehouse"
+---
+
+O módulo de Fulfillment traduz as regras fixas da máquina de estado em um fluxo operacional visível e configurável. Enquanto os estados internos do OMS são imutáveis, o que o operador enxerga na tela — as etapas do kanban, a sequência de trabalho, os motivos de remanejamento — é definido aqui, por account e por estratégia.
+
+Dois clientes com operações completamente diferentes — uma farmácia com validação de receita e um centro de distribuição de moda com picking automatizado — podem usar os mesmos estados internos do OMS com fluxos visuais totalmente distintos, sem desenvolvimento adicional.
+
+## Pipelines
+
+Um pipeline é uma sequência nomeada de etapas operacionais que define como a operação enxerga e executa o fulfillment. Cada account pode ter múltiplos pipelines, sendo exatamente um deles definido como padrão.
+
+Cada etapa de um pipeline corresponde a um ou mais estados internos da máquina de estado. A ordem das etapas é configurável — o time pode definir que a emissão de nota fiscal ocorra antes ou depois da separação, dependendo do processo da operação. As saídas de exceção (Cancelada, Devolvida) são representadas como caminhos alternativos ao fluxo principal, não como etapas lineares.
+
+Pipelines podem ser criados, editados, ativados, desativados e excluídos. Um pipeline em uso por estratégias ativas não pode ser excluído sem migração prévia das estratégias vinculadas.
+
+## Herança por Estratégia
+
+O pipeline padrão da account é herdado automaticamente por todas as estratégias cadastradas. Uma estratégia pode adotar um pipeline específico diferente do padrão — útil quando um ponto de fulfillment tem um processo distinto dos demais.
+
+Quando o pipeline padrão da account é alterado, as estratégias que herdavam o padrão são atualizadas automaticamente para novas entregas. Estratégias com pipeline específico não são afetadas pela mudança.
+
+## Remanejamento
+
+O remanejamento move uma entrega de uma estratégia para outra quando a estratégia original não consegue atender — por falta de estoque, por limitação operacional ou por decisão do supervisor. O OMS registra o motivo do remanejamento, a estratégia de origem e a de destino, preservando a rastreabilidade completa da entrega.
+
+## Rejeição Parcial
+
+A rejeição parcial permite que uma estratégia atenda apenas parte dos itens de uma entrega, sem cancelar o pedido inteiro. Os itens não atendidos são remanejados para outra estratégia ou ficam pendentes de decisão operacional, dependendo da configuração. Esse mecanismo é especialmente relevante para operações com alta variação de estoque por ponto de fulfillment.
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Máquina de Estado" icon="circle-nodes" href="/oms/maquina-de-estado">
+    Os estados fixos que os pipelines traduzem em fluxo operacional
+  </Card>
+  <Card title="DOM" icon="route" href="/oms/dom">
+    Como o DOM aloca pedidos às estratégias antes do fulfillment começar
+  </Card>
+  <Card title="Configuração Base" icon="sliders" href="/oms/configuracao-base">
+    Estratégias e operadores que executam o fulfillment
+  </Card>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Ações de remanejamento disponíveis no detalhe do pedido
+  </Card>
+</CardGroup>
