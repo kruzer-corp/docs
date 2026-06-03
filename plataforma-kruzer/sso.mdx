@@ -15,7 +15,7 @@ A Kruzer suporta **Single Sign-On (SSO)** corporativo, permitindo que sua organi
 | Item | Suporte |
 |---|---|
 | Provedor de identidade | **Microsoft Entra ID** (antigo Azure AD) |
-| Protocolo | **OpenID Connect (OIDC)** com fluxo *Authorization Code* |
+| Protocolo | **OpenID Connect (OIDC)** — fluxo *Authorization Code* + **PKCE** (SPA / MSAL Browser) |
 | Tenant Azure AD por organização | 1 tenant por organização Kruzer |
 | MFA herdado do provedor | Sim — qualquer política MFA do Azure AD vale automaticamente |
 | Coexistência SSO + senha local | Sim — configurável por organização |
@@ -80,8 +80,8 @@ Antes de iniciar a configuração, confirme:
   <Step title="Autenticação no Azure AD">
     O Azure AD autentica o usuário aplicando as políticas internas — incluindo **MFA** quando exigido pela organização. Após login válido, redireciona o navegador de volta para a Kruzer com um *authorization code*.
   </Step>
-  <Step title="Troca de código por token">
-    O backend da Kruzer troca o *authorization code* por um **id_token (JWT)** chamando o Azure AD servidor-a-servidor com o `client_secret`. A assinatura do token é validada contra as chaves públicas do tenant.
+  <Step title="Obtenção do token via PKCE">
+    A aplicação Kruzer roda no navegador via **MSAL Browser** e conclui o fluxo *Authorization Code* + **PKCE** diretamente contra o Entra ID, recebendo o **id_token (JWT)**. A assinatura do token é validada contra as chaves públicas do tenant. Por isso a Redirect URI precisa ser cadastrada como **Single-page application (SPA)** — ver a configuração abaixo.
   </Step>
   <Step title="Sessão Kruzer">
     A Kruzer identifica o usuário no IAM pelo **email** retornado nas claims e emite o JWT interno da plataforma. As **permissões** aplicadas são as cadastradas no IAM da Kruzer — não vêm do Azure AD.
@@ -93,16 +93,20 @@ Antes de iniciar a configuração, confirme:
 ## Configuração Passo a Passo
 
 <Steps>
-  <Step title="Kruzer fornece o Redirect URI">
+  <Step title="Kruzer fornece os Redirect URIs">
     O time Kruzer envia ao administrador da organização:
-    - **Redirect URI** (URL de callback) que deverá ser cadastrada no App Registration.
+    - Os **Redirect URIs** (URLs de callback) a cadastrar no App Registration. Há **um por aplicação** Kruzer (ex.: PIM e DevTools), no formato `https://<app>.<ambiente>.krzlabs.com/login`. Todos devem ser cadastrados como **Single-page application (SPA)**.
     - Lista de **claims/escopos** esperados (`openid`, `profile`, `email`).
   </Step>
   <Step title="Criar App Registration no Azure AD">
     No portal Azure, em **Microsoft Entra ID → App registrations → New registration**:
     - **Name:** sugerimos `Kruzer SSO`.
     - **Supported account types:** *Accounts in this organizational directory only* (single tenant).
-    - **Redirect URI:** plataforma *Web*, com a URL fornecida pela Kruzer.
+    - **Redirect URI:** selecione a plataforma **Single-page application (SPA)** e informe as URLs fornecidas pela Kruzer (uma por app, todas terminando em `/login`).
+
+    <Warning>
+      O tipo da Redirect URI **precisa ser Single-page application (SPA)**, não *Web*. O tipo SPA é o que habilita o fluxo **PKCE** usado pelo MSAL Browser; cadastrar como *Web* faz o login falhar. Se já existirem URIs em *Web*, remova-as e recadastre em **Single-page application** (em **Authentication**).
+    </Warning>
   </Step>
   <Step title="Gerar Client Secret">
     Em **Certificates & secrets → New client secret**, gere um segredo com validade de **12 ou 24 meses**. Anote o valor — ele só é exibido uma vez.
@@ -111,8 +115,18 @@ Antes de iniciar a configuração, confirme:
       Agende a **rotação do secret** antes do vencimento. Secret expirado bloqueia todo o login SSO da organização.
     </Tip>
   </Step>
-  <Step title="Conceder consentimento (se necessário)">
-    Em **API permissions**, confirme que estão presentes `openid`, `profile` e `email` (escopos delegados do Microsoft Graph). Se a organização exigir, clique em **Grant admin consent**.
+  <Step title="Adicionar permissões e conceder consentimento">
+    O fluxo OIDC exige os três escopos delegados do Microsoft Graph: `openid`, `profile` e `email`. Em uma App Registration nova normalmente só existe `User.Read` — **adicione** os três escopos em **API permissions**:
+
+    1. **+ Adicionar uma permissão**
+    2. **Microsoft Graph → Permissões delegadas**
+    3. Marque `openid`, `profile` e `email` (estão na seção *OpenId permissions*)
+    4. **Salvar**
+    5. Clique em **Conceder consentimento do administrador** para autorizar todos os escopos de uma vez
+
+    <Note>
+      A permissão `User.Read` já existente pode permanecer — não atrapalha o fluxo.
+    </Note>
   </Step>
   <Step title="Enviar credenciais para a Kruzer">
     O administrador da organização envia ao time Kruzer (por canal seguro):
@@ -226,6 +240,10 @@ Organizações com SSO habilitado normalmente **desabilitam o login por senha lo
 
   <Accordion title="Erro AADSTS50011 — Redirect URI not registered">
     A URL de callback informada pela Kruzer não foi cadastrada no App Registration, ou foi cadastrada com diferença (http vs https, trailing slash). Volte ao Azure AD em **App registrations → Authentication** e confirme o valor exato.
+  </Accordion>
+
+  <Accordion title="Erro AADSTS9002326 — Redirect URI cadastrada como Web em vez de SPA">
+    O login falha com erro de *cross-origin token redemption* (tipicamente **AADSTS9002326**: "Cross-origin token redemption is permitted only for the 'Single-Page Application' client-type"). Isso acontece quando as Redirect URIs foram cadastradas na plataforma **Web**, mas a integração Kruzer usa **PKCE** via MSAL Browser. Em **App registrations → Authentication**, remova as URIs de **Web** e cadastre as mesmas em **Single-page application**.
   </Accordion>
 
   <Accordion title="Login funcionava e parou — Client Secret expirado">
