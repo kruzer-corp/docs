@@ -1,0 +1,143 @@
+---
+title: Visão Geral
+description: Introdução à API REST do OMS — autenticação, formato de respostas, paginação e convenções gerais.
+icon: book-open
+---
+
+A API do OMS é uma API REST que expõe todo o backoffice de gestão de pedidos: cadastros base, catálogo, preços e promoções, estratégias de fulfillment, clientes, estoque e o controle de acesso. Todos os endpoints seguem o mesmo conjunto de convenções para autenticação, paginação, filtros e tratamento de erros.
+
+## URL Base
+
+Cada tenant é exposto em um subdomínio dedicado de `krzlabs.io`:
+
+```
+https://oms-api.{tenant}.krzlabs.io
+```
+
+Exemplo: `https://oms-api.fastshop.krzlabs.io`. Em desenvolvimento, a API roda em `http://localhost:3000`. A maioria dos endpoints de domínio é versionada pelo prefixo `/api/v1/`; o catálogo de permissões consumido pelo IAM fica sob `/api/core/v1/` e as sondas de saúde sob `/api/health/`.
+
+## Autenticação
+
+Todo endpoint de domínio exige autenticação e aceita dois esquemas:
+
+<CardGroup cols={2}>
+  <Card title="Bearer JWT" icon="user">
+    Token emitido pelo IAM para usuários humanos. Envie no header `Authorization`.
+  </Card>
+  <Card title="HTTP Basic" icon="robot">
+    Credenciais de service account, para chamadas máquina-a-máquina entre serviços.
+  </Card>
+</CardGroup>
+
+```http
+Authorization: Bearer <jwt_token>
+```
+
+As sondas de saúde (`/api/health/live` e `/api/health/ready`) são públicas e não exigem autenticação.
+
+<Note>
+  O JWT e as permissões são emitidos pela plataforma de Identidade e Acesso da Kruzer. Veja [IAM e Autenticação](/plataforma-kruzer/iam-autenticacao) para detalhes.
+</Note>
+
+## Formato de Resposta
+
+Recursos individuais são retornados diretamente como objeto, sem envelope:
+
+```json
+{
+  "id": "65f1c0a2e4b0a1d2c3e4f5a6",
+  "code": "CARRIER-001",
+  "name": "Transportadora Expressa",
+  "active": true,
+  "created_at": "2026-01-01T12:00:00.000Z",
+  "updated_at": "2026-01-01T12:00:00.000Z"
+}
+```
+
+Listagens são envelopadas em `data` e acompanhadas de um bloco `meta` com a paginação:
+
+```json
+{
+  "data": [
+    { "id": "65f1c0a2e4b0a1d2c3e4f5a6", "code": "CARRIER-001", "name": "Transportadora Expressa" }
+  ],
+  "meta": {
+    "total": 42,
+    "pages": 3,
+    "current_page": 1,
+    "next_page": 2,
+    "previous_page": null,
+    "limit": 20
+  }
+}
+```
+
+Erros seguem o formato com um `code` estável e legível por máquina:
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "name must be at least 3 characters long",
+    "details": { }
+  }
+}
+```
+
+O campo `details` é opcional e carrega payload estruturado quando aplicável — por exemplo, a lista de campos inválidos em uma validação ou as dependências que impedem a remoção de um recurso em uso.
+
+## Paginação e Filtros
+
+As listagens aceitam os seguintes parâmetros de query:
+
+| Parâmetro    | Descrição                                                                  |
+| ------------ | -------------------------------------------------------------------------- |
+| `page`       | Número da página (1-indexed, default `1`).                                 |
+| `limit`      | Itens por página (default `20`).                                           |
+| `sortBy`     | Campo de ordenação.                                                        |
+| `sortOrder`  | Direção da ordenação (`asc` ou `desc`).                                     |
+| `q`          | Busca textual livre, quando suportada pelo recurso.                        |
+| `active`     | Filtra por status ativo/inativo, quando aplicável.                         |
+
+Filtros adicionais específicos de cada recurso estão documentados na própria página do endpoint.
+
+## Ingestão de Estoque
+
+O endpoint `POST /api/v1/inventory` recebe lotes de posições de estoque enviados por ERP/WMS. O campo discriminador `updateType` na raiz do corpo seleciona o modo de atualização:
+
+- **`SNAPSHOT`** — sobrescreve a posição completa do SKU (`onHand`, `blocked`, `safetyStock`).
+- **`DELTA`** — incrementa ou decrementa o `onHand`.
+
+O processamento é assíncrono: a API valida o lote, publica os eventos em fila e responde `202 Accepted` com um `correlation_id` compartilhado por todos os eventos do lote. Use `GET /api/v1/inventory-movements` para auditar o histórico de movimentações.
+
+## Recursos da API
+
+A referência cobre os seguintes grupos de recursos:
+
+| Família                    | Recursos                                                                                     |
+| -------------------------- | -------------------------------------------------------------------------------------------- |
+| Cadastros base             | `carriers`, `channels`, `clusters`, `operators`, `payment-methods`                           |
+| Modalidades de entrega     | `delivery-modalities`, `delivery-types`, `freight-types`                                     |
+| Catálogo, preços e promoções | `products`, `product-categories`, `price-lists`, `promotions`                              |
+| Estratégias de fulfillment | `strategies`, `strategy-carriers`, `strategy-channels`, `strategy-operators`, `strategy-price-lists` |
+| Máquina de estado          | `state-machines`, `statuses`                                                                 |
+| Clientes                   | `customers`, `customer-addresses`                                                            |
+| Estoque                    | `inventory`, `inventory-movements`                                                           |
+| Acesso e saúde             | `permissions`, `core-permissions`, `health`                                                  |
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Configuração Base" icon="sliders" href="/oms/configuracao-base">
+    Entenda os cadastros base do OMS antes de consumir a API.
+  </Card>
+  <Card title="Preços, Promoções e Cupom" icon="tags" href="/oms/precos-promocoes-cupom">
+    Como preços, promoções e cupons são modelados no OMS.
+  </Card>
+  <Card title="DOM" icon="route" href="/oms/dom">
+    O motor de roteamento que usa estratégias, operadores e transportadoras.
+  </Card>
+  <Card title="Identidade e Acesso" icon="lock" href="/plataforma-kruzer/iam-autenticacao">
+    Como autenticar e gerenciar permissões.
+  </Card>
+</CardGroup>
