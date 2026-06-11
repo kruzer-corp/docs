@@ -1,46 +1,70 @@
 ---
 title: "Transferência de Produto"
-description: "Movimentação de estoque entre estratégias para reequilibrar a rede de fulfillment"
-icon: "truck-fast"
+description: "Movimentação formal de estoque entre unidades da rede — do pedido de transferência ao recebimento confirmado"
+icon: "arrow-right-arrow-left"
 ---
 
-O módulo de Transferência de Produto gerencia a movimentação de itens entre estratégias da rede de fulfillment. Quando o estoque está concentrado em um ponto enquanto outro enfrenta ruptura, a transferência é o mecanismo que reequilibra a disponibilidade sem depender de uma nova entrada de mercadoria do fornecedor.
+A Transferência de Produto é o mecanismo pelo qual o estoque é redistribuído entre unidades da rede de forma rastreável e controlada. Quando um produto está concentrado em um ponto enquanto outro enfrenta ruptura, a transferência formaliza o processo de mover esse estoque — substituindo ligações telefônicas e controles manuais por um fluxo com registro, responsável e histórico em cada etapa.
 
-Transferências bem executadas aumentam a taxa de atendimento do DOM, reduzem o número de pedidos não roteados por falta de estoque e evitam o custo de envio de produtos de fontes externas quando o item já existe em outro ponto da própria rede.
+Cada transferência percorre um ciclo de vida próprio: começa com uma solicitação, passa por aprovação, despacho e recebimento, e encerra com o estoque atualizado automaticamente nas duas pontas. Todo o processo fica registrado e auditável.
 
-## Criação de Transferência
+## Criando uma Solicitação
 
-Uma transferência é criada a partir de uma estratégia de origem e uma estratégia de destino, com a lista de itens e quantidades a serem movimentadas. O OMS valida a disponibilidade do estoque na origem antes de confirmar a operação. O estoque é reservado na origem no momento da criação e transferido para o destino apenas quando a movimentação é concluída fisicamente.
+Qualquer operador com acesso ao módulo de inventário pode abrir uma solicitação de transferência. Para isso, informa a unidade de onde o produto vai sair, a unidade para onde vai, os produtos envolvidos e a quantidade de cada um. Um campo de observação opcional permite registrar contexto adicional sobre a necessidade.
 
-O ciclo de vida de uma transferência passa pelas etapas de solicitação, aprovação, separação dos itens na origem, expedição, recebimento no destino e conclusão. Cada etapa é registrada com usuário responsável e carimbo de data e hora.
+Ao confirmar, a solicitação é registrada com status **Solicitada** e entra no fluxo de aprovação. Nenhum estoque é movimentado nesse momento.
 
-## Impacto no Estoque e no DOM
+O sistema valida automaticamente se a quantidade solicitada está disponível na unidade de origem. Caso ultrapasse o estoque disponível, um aviso é exibido — mas a solicitação pode prosseguir, ficando sujeita à avaliação do gerente na etapa de aprovação.
 
-Enquanto uma transferência está em andamento, os itens reservados na origem não estão disponíveis para novos pedidos. O DOM considera apenas o estoque comprometível — o que está disponível menos as reservas de pedidos ativos e transferências em curso. Isso evita dupla alocação e garante consistência entre o que o sistema enxerga e o que está fisicamente disponível.
+## Aprovação
 
-Quando a transferência é concluída, o estoque é acrescido na estratégia de destino e a reserva é liberada na origem. O DOM passa a considerar o novo saldo imediatamente nas decisões de roteamento seguintes.
+Antes de qualquer movimentação física, o gerente da unidade de origem analisa a solicitação. Ele visualiza quem pediu, quais produtos estão envolvidos, as quantidades e o estoque atual da sua unidade em cada item.
 
-## Visibilidade
+A decisão é aprovar ou rejeitar. A aprovação libera o operador da origem para iniciar o despacho. A rejeição encerra o processo — o motivo informado pelo gerente fica registrado na solicitação e o solicitante é notificado.
 
-O painel de transferências exibe todas as movimentações em andamento e concluídas, com filtros por estratégia de origem, destino, status e período. O histórico completo de cada transferência — com os itens, quantidades, responsáveis e datas de cada etapa — fica disponível para consulta e auditoria.
+## Despacho
 
-<Note>
-  O módulo de Transferência de Produto está em fase de especificação. As capacidades descritas aqui representam o escopo planejado para o go-live.
-</Note>
+Com a solicitação aprovada, o operador da unidade de origem registra o momento em que os produtos saem fisicamente do ponto. Nessa etapa, confirma a quantidade que está sendo enviada por produto — que pode ser igual ou menor ao que foi aprovado — e opcionalmente informa a data estimada de chegada e alguma observação sobre o transporte.
+
+Ao confirmar o despacho, a transferência muda para status **Em Trânsito** e a unidade de destino é notificada de que o produto está a caminho.
+
+## Recebimento
+
+Quando os produtos chegam à unidade de destino, o operador local confirma o recebimento. Nesse momento, o OMS atualiza o estoque das duas unidades automaticamente: debita da origem e credita no destino, sem necessidade de ajuste manual.
+
+O recebimento encerra o ciclo da transferência, que muda para status **Recebida**, com registro de data, hora e nome de quem confirmou.
+
+## Cancelamento
+
+Uma transferência pode ser cancelada enquanto ainda não foi despachada — nos status **Solicitada** ou **Aprovada**. O cancelamento exige a informação do motivo e não gera nenhuma movimentação de estoque. Todos os envolvidos são notificados.
+
+Após o despacho ser registrado, o cancelamento não está mais disponível. Se o produto não deve chegar ao destino após sair da origem, é necessário abrir uma nova transferência no sentido inverso.
+
+## Acompanhamento
+
+A tela de Transferências oferece visibilidade centralizada de todas as movimentações em andamento. É possível filtrar por status, unidade de origem, unidade de destino e período. A listagem exibe, para cada transferência, quem solicitou, as unidades envolvidas, o status atual e a data de abertura.
+
+Gestores deixam de depender de contato direto com as lojas para saber o que está em trânsito — a informação está disponível na tela, atualizada em tempo real.
+
+## Histórico e Auditoria
+
+Cada transferência mantém um registro completo e imutável de tudo que aconteceu: cada mudança de status, quem executou, quando, e as observações registradas em cada etapa.
+
+As movimentações de estoque geradas pelo recebimento ficam disponíveis no histórico de inventário de cada unidade, com saldo antes e depois, data e motivo identificado como **Transferência**. Esse registro permite investigar qualquer divergência de estoque com precisão, sem depender de memória ou planilha.
 
 ## Próximos Passos
 
 <CardGroup cols={2}>
-  <Card title="Configuração Base" icon="sliders" href="/oms/configuracao-base">
-    Estratégias e estoques envolvidos nas transferências
+  <Card title="Inventário" icon="boxes-stacked" href="/oms/visao-geral">
+    Visão global de estoque, pools e alocações por canal
   </Card>
   <Card title="DOM" icon="route" href="/oms/dom">
-    Como o saldo de estoque influencia as decisões de roteamento
+    Como o motor de roteamento distribui pedidos entre as unidades da rede
   </Card>
   <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
-    Operação de separação e expedição na estratégia de origem
+    O fluxo operacional de execução de cada entrega
   </Card>
-  <Card title="Relatórios e Dashboards" icon="chart-line" href="/oms/relatorios-e-dashboards">
-    Visibilidade sobre movimentações de estoque e níveis por estratégia
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Gestão completa do ciclo de vida de pedidos
   </Card>
 </CardGroup>
