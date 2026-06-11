@@ -137,6 +137,16 @@
               "oms/transferencia-de-produto",
               "oms/relatorios-e-dashboards"
             ]
+          },
+          {
+            "group": "Referência da API",
+            "openapi": {
+              "source": "oms/api/openapi.json",
+              "directory": "oms/api"
+            },
+            "pages": [
+              "oms/api/visao-geral"
+            ]
           }
         ]
       },
