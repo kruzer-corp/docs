@@ -26631,8 +26631,7 @@
                   "returns": {
                     "type": "boolean"
                   }
-                },
-                "selfRequired": true
+                }
               }
             },
             "required": [
@@ -26729,10 +26728,8 @@
           "coordinates": {
             "type": "array",
             "items": {
-              "name": "coordinates",
               "type": "array",
               "items": {
-                "required": true,
                 "type": "array",
                 "items": {
                   "type": "number"
@@ -26970,8 +26967,7 @@
                   "cost_per_kg": {
                     "type": "number"
                   }
-                },
-                "selfRequired": true
+                }
               },
               "inherited": {
                 "type": "boolean"
@@ -27005,8 +27001,7 @@
                     "open",
                     "close"
                   ]
-                },
-                "selfRequired": true
+                }
               },
               "inherited": {
                 "type": "boolean"
@@ -27055,8 +27050,7 @@
                   "returns": {
                     "type": "boolean"
                   }
-                },
-                "selfRequired": true
+                }
               }
             },
             "required": [
@@ -27151,8 +27145,7 @@
                   "cost_per_kg": {
                     "type": "number"
                   }
-                },
-                "selfRequired": true
+                }
               },
               "inherited": {
                 "type": "boolean"
@@ -27186,8 +27179,7 @@
                     "open",
                     "close"
                   ]
-                },
-                "selfRequired": true
+                }
               },
               "inherited": {
                 "type": "boolean"
@@ -27236,8 +27228,7 @@
                   "returns": {
                     "type": "boolean"
                   }
-                },
-                "selfRequired": true
+                }
               }
             },
             "required": [
@@ -27321,10 +27312,8 @@
           "coordinates": {
             "type": "array",
             "items": {
-              "name": "coordinates",
               "type": "array",
               "items": {
-                "required": true,
                 "type": "array",
                 "items": {
                   "type": "number"
@@ -27555,8 +27544,7 @@
                   "cost_per_kg": {
                     "type": "number"
                   }
-                },
-                "selfRequired": true
+                }
               },
               "inherited": {
                 "type": "boolean"
@@ -27590,8 +27578,7 @@
                     "open",
                     "close"
                   ]
-                },
-                "selfRequired": true
+                }
               },
               "inherited": {
                 "type": "boolean"
@@ -27640,8 +27627,7 @@
                   "returns": {
                     "type": "boolean"
                   }
-                },
-                "selfRequired": true
+                }
               }
             },
             "required": [
@@ -28656,8 +28642,7 @@
                     "from",
                     "to"
                   ]
-                },
-                "selfRequired": true
+                }
               },
               "states": {
                 "type": "array",
@@ -28678,8 +28663,7 @@
                     "status",
                     "actions"
                   ]
-                },
-                "selfRequired": true
+                }
               }
             },
             "required": [
@@ -34257,8 +34241,7 @@
                       "type": "number",
                       "nullable": true
                     }
-                  },
-                  "selfRequired": true
+                  }
                 },
                 "pix": {
                   "type": "object",
@@ -34279,8 +34262,7 @@
                       "type": "string",
                       "nullable": true
                     }
-                  },
-                  "selfRequired": true
+                  }
                 },
                 "boleto": {
                   "type": "object",
@@ -34297,8 +34279,7 @@
                       "type": "string",
                       "nullable": true
                     }
-                  },
-                  "selfRequired": true
+                  }
                 },
                 "paid_at": {
                   "type": "string",
