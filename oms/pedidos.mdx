@@ -4,37 +4,40 @@ description: "Gestão completa do ciclo de vida de pedidos — do recebimento at
 icon: "bag-shopping"
 ---
 
-O Pedido é a entidade central do OMS. Tudo gira em torno dele: o estoque é reservado para ele, as entregas são geradas a partir dele e o cliente é identificado por ele. Cada compra que entra no sistema — seja via integração de canal, via API ou criada manualmente — precisa ser recebida, validada, priorizada, roteada e acompanhada até a conclusão.
+O Pedido é a entidade central do OMS. Tudo gira em torno dele: as entregas são geradas a partir dele e o cliente é identificado por ele. Cada compra que entra no sistema — seja via integração de canal, via API ou criada manualmente — precisa ser recebida, validada, roteada e acompanhada até a conclusão.
 
-Um pedido reúne quem comprou, o que comprou, como pagou, onde deve ser entregue, por qual canal chegou, em que estado se encontra e qual é a sua prioridade. O OMS nunca duplica pedidos no split: um pedido pode gerar múltiplas entregas operacionais, mas o cliente sempre enxerga uma única compra.
+Um pedido reúne quem comprou, o que comprou, como pagou, onde deve ser entregue, por qual canal chegou e em que estado se encontra. O cliente sempre enxerga uma única compra, ainda que ela se desdobre em entregas operacionais para execução.
 
 ## Recebimento de Pedidos
 
 Pedidos chegam ao OMS por três caminhos: integração com canais de venda (iFood, Rappi, VTEX, NCR e outros), chamada direta à API ou criação manual pelo operador no painel administrativo.
 
-A identidade de um pedido no OMS é definida pela combinação do identificador externo, do canal e do account. Essa tríade garante idempotência: se o mesmo pedido for enviado duas vezes pelo canal, o OMS retorna o registro existente sem criar duplicatas. O estoque dos itens é reservado imediatamente na entrada do pedido e só é liberado em caso de cancelamento ou conclusão da entrega.
+A identidade de um pedido no OMS é definida pela combinação do identificador externo, do canal e do account. Essa tríade garante idempotência: se o mesmo pedido for enviado duas vezes pelo canal, o OMS retorna o registro existente sem criar duplicatas. A reserva de estoque não acontece na entrada do pedido: ela ocorre quando a entrega (fulfillment order) é gerada, após a confirmação do pagamento, e é liberada em caso de cancelamento da entrega ou do pedido.
 
-## Listagem e Priorização
+## Listagem
 
-A listagem de pedidos oferece filtros por canal, status, período, prioridade, estratégia e cliente. A priorização é dinâmica: cada pedido carrega um score numérico calculado automaticamente com base em critérios como SLA, segmento do cliente e restrições do pedido. Esse score determina o nível de prioridade (CRITICAL, HIGH, MEDIUM ou LOW) e pode ser sobrescrito manualmente por um supervisor quando a situação operacional exigir.
+A listagem de pedidos oferece filtros por canal, status, estratégia, cliente e período. A janela de datas é obrigatória e limitada a um intervalo máximo de seis meses por consulta, mantendo a listagem previsível mesmo em operações de alto volume. Os resultados são paginados no envelope padrão `{ data, meta }`.
 
 ## Detalhe do Pedido
 
-O detalhe de um pedido exibe o estado atual, o histórico completo de transições, os itens com preços e descontos aplicados, as informações de pagamento, o endereço de entrega e faturamento, as entregas vinculadas e as anotações registradas pelo time operacional. Todas as ações disponíveis para aquele pedido são exibidas de acordo com o perfil do usuário e o estado atual.
+O detalhe de um pedido reúne o estado atual, uma timeline unificada com o histórico de transições e eventos, os itens com preços e descontos aplicados, as informações de pagamento, os endereços de entrega e faturamento e as entregas vinculadas. As ações disponíveis para aquele pedido são exibidas de acordo com o perfil do usuário e o estado atual.
 
 ## Criação Manual
 
-O OMS permite que supervisores criem pedidos diretamente pelo painel, sem que a compra precise vir de um canal externo. Esse fluxo é utilizado para atendimentos especiais, pedidos de balcão ou reposições operacionais. A criação manual segue as mesmas regras de validação da entrada via integração: reserva de estoque, verificação de catálogo e aplicação de preço e desconto.
+O OMS permite criar pedidos diretamente via API, sem que a compra precise vir de um canal externo. Esse fluxo é utilizado para atendimentos especiais, pedidos de balcão ou reposições operacionais. A criação manual segue as mesmas regras de validação da entrada via integração: verificação de catálogo, aplicação de preço e desconto e materialização do pedido no estado inicial da máquina de estado.
 
 ## Ações Operacionais
 
-Ao longo do ciclo de vida, diferentes ações estão disponíveis dependendo do estado do pedido e do perfil do operador:
+Ao longo do ciclo de vida, diferentes ações estão disponíveis dependendo do estado do pedido e do perfil do operador. As ações hoje expostas pela API são:
 
-- **Cancelamento** — encerra o pedido negativamente, libera o estoque reservado e cancela todas as entregas ativas. Disponível até determinados estados, conforme as regras da máquina de estado.
-- **Remanejamento** — move o pedido para uma estratégia diferente da originalmente alocada pelo DOM. Indicado quando a estratégia original não consegue atender por razão operacional.
-- **Edição** — permite ajustar informações do pedido antes que a operação de fulfillment avance para estágios irreversíveis.
-- **Antifraude** — registra a análise de risco e bloqueia ou libera pedidos suspeitos para prosseguimento.
-- **Split** — divide o pedido em múltiplas entregas quando os itens precisam ser atendidos por estratégias diferentes.
+- **Cancelamento** — encerra o pedido negativamente, cancela as entregas ativas e libera o estoque reservado. Exige a informação de um motivo e respeita a máquina de estado: não é permitido cancelar um pedido já faturado.
+- **Transição de status** — avança o pedido pelos estados válidos da máquina de estado configurada para a conta. O cancelamento tem endpoint dedicado e não é feito por essa via.
+- **Edição de endereço de entrega** — permite corrigir o endereço de entrega (shipping) do pedido, também com motivo obrigatório para rastreabilidade.
+- **Pagamentos** — registra e atualiza os pagamentos do pedido. Quando os pagamentos capturados cobrem o valor total, o pedido avança automaticamente para Pago.
+
+<Note>
+  Ações como remanejamento entre estratégias, split manual de itens e análise antifraude fazem parte da evolução planejada do módulo e ainda não estão disponíveis via API.
+</Note>
 
 ## Workflow do Pedido
 
@@ -44,10 +47,13 @@ Cada pedido carrega um snapshot do workflow de fulfillment no momento da sua cri
 
 <CardGroup cols={2}>
   <Card title="Máquina de Estado" icon="circle-nodes" href="/oms/maquina-de-estado">
-    Estados fixos e regras de transição do ciclo de vida do pedido
+    Estados e regras de transição do ciclo de vida do pedido
   </Card>
   <Card title="DOM" icon="route" href="/oms/dom">
     Como o motor de roteamento aloca entregas para cada pedido
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/oms/webhooks">
+    Notifique sistemas externos a cada evento de pedido
   </Card>
   <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
     O fluxo operacional de execução de cada entrega

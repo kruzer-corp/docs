@@ -40,7 +40,7 @@ A sua função é enriquecer os itens dos pedidos e disponibilizar uma listagem 
 
 ## Estoque
 
-O Estoque também é um read-model, sincronizado a partir do ERP ou WMS via snapshots e atualizações incrementais. A interface administrativa permite apenas consultar os níveis atuais e configurar o `safety_stock` — um limite de reserva mínima que o DOM respeita ao calcular disponibilidade. O OMS nunca altera o estoque diretamente; qualquer movimentação parte do sistema de origem.
+O Estoque também é um read-model, sincronizado a partir do ERP ou WMS via snapshots (posição completa) e deltas (atualizações incrementais). A interface e a API permitem consultar os níveis atuais e o histórico de movimentações. O `safety_stock` — reserva mínima que o OMS desconta ao calcular a disponibilidade (`disponível = onHand − reservado − bloqueado − safetyStock`) — chega junto com o snapshot da fonte de origem; não há edição manual de posição de estoque pela interface. O OMS não altera o estoque da origem: além de refletir as posições recebidas, ele registra movimentações internas próprias (como reserva e liberação de estoque ao criar ou cancelar entregas).
 
 <Note>
   Configuração Base é pré-requisito para todas as demais funcionalidades do OMS. Enquanto essas entidades não estiverem configuradas para um account, pedidos não fluem ponta a ponta.

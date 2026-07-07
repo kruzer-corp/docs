@@ -1,10 +1,12 @@
 ---
 title: "Máquina de Estado"
-description: "Ciclo de vida controlado de pedidos e entregas — estados fixos, transições auditáveis e regras de negócio imutáveis"
+description: "Ciclo de vida controlado de pedidos e entregas — status configuráveis, transições auditáveis e regras validadas"
 icon: "circle-nodes"
 ---
 
-O OMS opera com uma máquina de estado que garante que todo pedido e toda entrega percorram um ciclo de vida rastreável, controlado e auditável. Nenhum estado pode ser pulado e nenhuma transição pode ocorrer fora das regras definidas. Essa camada é fixa e obrigatória para qualquer operação — independente do canal, do cliente ou da configuração de fulfillment adotada.
+O OMS opera com uma máquina de estado que garante que todo pedido e toda entrega percorram um ciclo de vida rastreável, controlado e auditável. Nenhuma transição pode ocorrer fora das regras definidas: cada mudança de estado é validada contra a máquina de estado vigente para a conta. Essa camada é obrigatória para qualquer operação — independente do canal, do cliente ou da configuração de fulfillment adotada.
+
+A Kruzer fornece um conjunto de **status-base** (com natureza inicial, de processamento, final ou de erro) e máquinas de estado padrão para pedido e entrega. Cada conta pode estender esse catálogo com **status customizados** e definir suas próprias máquinas de estado, elegendo uma como padrão. Os status-base e suas naturezas são preservados; a personalização acontece por cima deles.
 
 O OMS mantém duas máquinas de estado independentes que coexistem e se comunicam: a do **Pedido** e a da **Entrega** (FulfillmentOrder). Cada uma tem seu próprio ciclo e semântica de negócio.
 
@@ -12,30 +14,39 @@ O OMS mantém duas máquinas de estado independentes que coexistem e se comunica
 
 O ciclo de vida do pedido representa a experiência do cliente — é a visão consolidada da compra, da confirmação até o encerramento.
 
-Os estados do pedido são:
+Os estados base do pedido são:
 
-- **Criado** — pedido recebido, aguardando confirmação de pagamento. Nenhuma operação de fulfillment é iniciada.
-- **Pago** — pagamento confirmado. O DOM Engine é notificado para iniciar a alocação das entregas.
-- **Faturado** — ao menos uma nota fiscal foi emitida. O pedido está em processo ativo de entrega.
-- **Concluído** — todas as entregas foram concluídas. O pedido é encerrado e nenhuma ação adicional é permitida.
-- **Cancelado** — pedido encerrado negativamente. Todas as entregas ativas são canceladas automaticamente.
+- **Criado** (`CREATED`) — pedido recebido, aguardando confirmação de pagamento. Nenhuma operação de fulfillment é iniciada.
+- **Pago** (`PAID`) — pagamento confirmado. Dispara a geração da entrega (fulfillment order) para roteamento.
+- **Faturado** (`INVOICED`) — nota fiscal emitida. O pedido está em processo ativo de entrega.
+- **Finalizado** (`FINISHED`) — pedido encerrado. Nenhuma ação adicional é permitida.
+- **Cancelado** (`CANCELLED`) — pedido encerrado negativamente. As entregas ativas são canceladas e o estoque reservado é liberado.
 
-As transições entre estados seguem regras estritas. A passagem de Criado para Pago ocorre automaticamente mediante confirmação de pagamento vinda do canal. O cancelamento a partir do estado Pago só é permitido por um Supervisor e apenas se nenhuma entrega já estiver em estágio de faturamento. Uma vez Faturado, o pedido só pode avançar para Concluído.
+As transições permitidas no fluxo padrão são: `Criado → Pago`, `Pago → Faturado`, `Faturado → Finalizado`, `Criado → Cancelado` e `Pago → Cancelado`. A passagem de Criado para Pago ocorre automaticamente quando os pagamentos capturados cobrem o valor total do pedido. **Não existe transição de Faturado para Cancelado** — uma vez faturado, o pedido não pode mais ser cancelado, apenas avançar para Finalizado.
 
 ## Entrega (FulfillmentOrder)
 
-A entrega representa a execução operacional. Um único pedido pode gerar até três entregas simultâneas — resultado de um split por estratégia, por transportadora ou por restrição de produto. Cada entrega tem seu próprio ciclo de vida e seu próprio ponto de fulfillment responsável.
+A entrega (fulfillment order) representa a execução operacional. Hoje, cada pedido gera uma entrega, roteada para uma única estratégia com todos os itens do pedido. O modelo suporta múltiplas entregas por pedido (split), capacidade prevista para evolução futura; cada entrega tem seu próprio ciclo de vida e seu próprio ponto de fulfillment responsável.
 
-Os estados da entrega cobrem o fluxo desde a alocação pelo DOM até a conclusão: alocada, em separação, em embalagem, faturada, em trânsito, entregue. Estados de exceção — como cancelada e devolvida — são representados como saídas alternativas ao fluxo nominal.
+Os estados base da entrega são:
 
-A propagação entre as duas máquinas ocorre em momentos específicos. Quando a primeira nota fiscal de qualquer entrega é emitida, o pedido avança automaticamente para Faturado. Quando todas as entregas chegam ao estado Entregue, o pedido avança para Concluído.
+- **Atribuído** (`ASSIGNED`) — entrega criada e roteada para uma estratégia, com o estoque dos itens reservado.
+- **Faturado** (`INVOICED`) — nota fiscal emitida para a entrega.
+- **Enviado** (`SHIPPED`) — entrega despachada e a caminho do cliente.
+- **Entregue** (`DELIVERED`) — entrega concluída.
+- **Cancelado** (`CANCELLED`) — entrega cancelada; a reserva de estoque é liberada.
+- **Rejeitado** (`REJECTED`) — a estratégia não conseguiu atender (por exemplo, ruptura de estoque na criação).
+
+As transições nominais são `Atribuído → Faturado → Enviado → Entregue`. O cancelamento e a rejeição só são possíveis a partir de Atribuído.
+
+A única propagação automática entre pagamento e pedido é a confirmação: quando os pagamentos cobrem o total, o pedido vai para Pago, o que dispara a geração da entrega. As transições de Faturado e Finalizado do pedido são registradas explicitamente, não derivadas automaticamente do estado das entregas.
 
 ## Controle de Transições
 
 Cada transição é associada a um perfil de permissão — sistema, operador ou supervisor — e a condições de negócio verificadas em tempo real. O OMS registra em log toda transição realizada: quem executou, quando, a partir de qual estado e para qual estado. Esse histórico é imutável e acessível pelo painel de detalhe do pedido.
 
 <Note>
-  Os estados e transições da máquina de estado são fixos e não podem ser removidos ou renomeados por configuração. O cliente pode personalizar o fluxo visual operacional por cima dessa camada via Fulfillment, mas a máquina de negócio subjacente é imutável.
+  Os status-base fornecidos pela Kruzer e suas naturezas são preservados; cada conta pode adicionar status customizados e definir máquinas de estado próprias, elegendo uma como padrão. Toda transição continua sendo validada contra a versão da máquina de estado congelada no pedido, garantindo previsibilidade mesmo após mudanças de configuração.
 </Note>
 
 ## Próximos Passos
