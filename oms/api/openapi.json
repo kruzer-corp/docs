@@ -19240,7 +19240,7 @@
     },
     "/api/v1/fulfillment-orders/{id}/status": {
       "patch": {
-        "description": "Transitions the fulfillment order to a new status, validated against the state machine version pinned on the FO at creation. On a valid transition it appends an immutable timeline event (FulfillmentOrderTrackingEvent) — the status change and the timeline entry run in a single transaction. Inventory effects are NOT applied here: the FO inventory lifecycle (reserve/commit/release) is being reworked as a whole under KOMS-795. CANCELLED and REJECTED are not allowed here: they require a reason and go through the dedicated reject/cancel endpoint. accountCode and the actor (user or service account) come from the JWT.",
+        "description": "Transitions the fulfillment order to a new status, validated against the state machine version pinned on the FO at creation. On a valid transition it appends an immutable timeline event (FulfillmentOrderTrackingEvent) — the status change and the timeline entry run in a single transaction. Inventory effects are not applied by this endpoint. CANCELLED and REJECTED are not allowed here: they require a reason and go through the dedicated reject/cancel endpoint. accountCode and the actor (user or service account) come from the JWT.",
         "operationId": "FulfillmentOrdersController_updateStatus_v1",
         "parameters": [
           {
@@ -19633,7 +19633,7 @@
         ]
       },
       "post": {
-        "description": "Creates a shipment (status SHIPMENT_CREATED — not yet dispatched by the carrier) linked to the fulfillment order and opens its tracking timeline with a matching event, in a single transaction. It does NOT change the fulfillment order status: dispatch (-> DISPATCHED) and the FO -> SHIPPED are later steps (KOMS-678/679). Validates that the fulfillment order, the carrier and every package SKU exist. accountCode comes from the JWT.",
+        "description": "Creates a shipment (status SHIPMENT_CREATED — not yet dispatched by the carrier) linked to the fulfillment order and opens its tracking timeline with a matching event, in a single transaction. It does not change the fulfillment order status. Validates that the fulfillment order, the carrier and every package SKU exist. accountCode comes from the JWT.",
         "operationId": "FulfillmentOrderShipmentsController_create_v1",
         "parameters": [
           {
