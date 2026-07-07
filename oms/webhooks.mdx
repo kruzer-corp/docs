@@ -1,0 +1,55 @@
+---
+title: "Webhooks"
+description: "Notificações HTTP de eventos de pedido para sistemas externos, com entrega assíncrona e reprocessamento automático"
+icon: "webhook"
+---
+
+Os Webhooks permitem que sistemas externos sejam notificados em tempo quase real quando eventos relevantes acontecem no OMS. Em vez de consultar a API periodicamente em busca de mudanças, o sistema externo cadastra uma assinatura (subscription) apontando para uma URL própria e passa a receber uma requisição HTTP `POST` a cada evento assinado.
+
+## Assinaturas
+
+Uma assinatura de webhook define para onde e sobre o quê o OMS deve notificar. O gerenciamento é feito pela API: é possível criar, listar, consultar, editar e remover assinaturas. Cada assinatura registra a URL de destino, os tipos de evento que deseja receber, o estado (ativa/inativa) e, opcionalmente, cabeçalhos HTTP customizados que o OMS repassa em cada entrega — úteis para autenticação no endpoint receptor.
+
+O catálogo de tipos de evento disponíveis pode ser consultado pelo endpoint dedicado de tipos de evento, que retorna cada valor com um rótulo legível.
+
+## Tipos de Evento
+
+Os eventos disponíveis atualmente são:
+
+| Evento | Quando dispara |
+| --- | --- |
+| `ORDER_CREATED` | Um novo pedido é criado no OMS. |
+| `ORDER_STATUS_CHANGED` | O status de um pedido muda. |
+
+<Note>
+  O catálogo de eventos é evolutivo. Novos tipos — cobrindo entregas, pagamentos e estoque — serão adicionados conforme o OMS avança, e aparecerão automaticamente na consulta de tipos de evento.
+</Note>
+
+## Entrega
+
+A entrega é assíncrona e desacoplada do fluxo do pedido: quando um evento ocorre, o OMS o publica internamente e um processo dedicado é responsável por entregá-lo às assinaturas correspondentes via `POST`. Cada requisição carrega, além do corpo do evento, os cabeçalhos de identificação `X-Kruzer-Event-Id` e `X-Kruzer-Event-Type`, somados a quaisquer cabeçalhos customizados configurados na assinatura.
+
+## Reprocessamento e Saúde
+
+Se a entrega falha, o OMS reprocessa a requisição algumas vezes com um pequeno intervalo entre as tentativas. Quando uma assinatura acumula um número seguido de falhas, ela é desativada automaticamente para evitar tentativas indefinidas contra um endpoint quebrado — nesse caso, o motivo da desativação fica registrado e a assinatura precisa ser reativada após a correção do destino.
+
+<Note>
+  A assinatura HMAC do corpo (para verificação de origem) e o reprocessamento persistente via agendador fazem parte do escopo planejado e ainda não estão disponíveis. Hoje, a autenticação no endpoint receptor pode ser feita via cabeçalhos customizados na assinatura.
+</Note>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Os eventos de pedido que originam as notificações
+  </Card>
+  <Card title="Máquina de Estado" icon="circle-nodes" href="/oms/maquina-de-estado">
+    As mudanças de status que disparam `ORDER_STATUS_CHANGED`
+  </Card>
+  <Card title="Referência da API" icon="book-open" href="/oms/api/visao-geral">
+    Endpoints de `webhook-subscriptions` na referência da API
+  </Card>
+  <Card title="iPaaS e Integrações" icon="arrows-turn-to-dots" href="/devtools/visao-geral">
+    Conecte o OMS aos seus sistemas via DevTools
+  </Card>
+</CardGroup>

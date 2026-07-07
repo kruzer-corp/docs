@@ -8,6 +8,10 @@ A Transferência de Produto é o mecanismo pelo qual o estoque é redistribuído
 
 Cada transferência percorre um ciclo de vida próprio: começa com uma solicitação, passa por aprovação, despacho e recebimento, e encerra com o estoque atualizado automaticamente nas duas pontas. Todo o processo fica registrado e auditável.
 
+<Warning>
+  A orquestração de transferências descrita nesta página faz parte do escopo planejado e **ainda não está disponível** no OMS. Hoje, movimentações de estoque com motivo **Transferência** só chegam ao OMS quando ingeridas pelo ERP/WMS e aparecem no histórico de inventário — o OMS reflete essas movimentações, mas não gerencia o fluxo de solicitação, aprovação, despacho e recebimento entre unidades.
+</Warning>
+
 ## Criando uma Solicitação
 
 Qualquer operador com acesso ao módulo de inventário pode abrir uma solicitação de transferência. Para isso, informa a unidade de onde o produto vai sair, a unidade para onde vai, os produtos envolvidos e a quantidade de cada um. Um campo de observação opcional permite registrar contexto adicional sobre a necessidade.

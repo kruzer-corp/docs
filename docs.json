@@ -134,6 +134,7 @@
               "oms/maquina-de-estado",
               "oms/fulfillment",
               "oms/dom",
+              "oms/webhooks",
               "oms/transferencia-de-produto",
               "oms/relatorios-e-dashboards"
             ]

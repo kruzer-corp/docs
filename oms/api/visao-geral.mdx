@@ -4,7 +4,7 @@ description: Introdução à API REST do OMS — autenticação, formato de resp
 icon: book-open
 ---
 
-A API do OMS é uma API REST que expõe todo o backoffice de gestão de pedidos: cadastros base, catálogo, preços e promoções, estratégias de fulfillment, clientes, estoque e o controle de acesso. Todos os endpoints seguem o mesmo conjunto de convenções para autenticação, paginação, filtros e tratamento de erros.
+A API do OMS é uma API REST que expõe todo o backoffice de gestão de pedidos: cadastros base, catálogo, preços e promoções, pedidos e entregas (fulfillment orders), estratégias de fulfillment, clientes, estoque, webhooks e o controle de acesso. Todos os endpoints seguem o mesmo conjunto de convenções para autenticação, paginação, filtros e tratamento de erros.
 
 ## URL Base
 
@@ -119,10 +119,13 @@ A referência cobre os seguintes grupos de recursos:
 | Cadastros base             | `carriers`, `channels`, `clusters`, `operators`, `payment-methods`                           |
 | Modalidades de entrega     | `delivery-modalities`, `delivery-types`, `freight-types`                                     |
 | Catálogo, preços e promoções | `products`, `product-categories`, `price-lists`, `promotions`                              |
+| Pedidos                    | `orders`, `order-payments`, `order-fulfillment-orders`                                        |
+| Fulfillment                | `fulfillment-orders`, `fulfillment-order-shipments`, `fulfillment-order-tracking-events`, `fulfillment-order-shipment-tracking-events` |
 | Estratégias de fulfillment | `strategies`, `strategy-carriers`, `strategy-channels`, `strategy-operators`, `strategy-price-lists` |
 | Máquina de estado          | `state-machines`, `statuses`                                                                 |
 | Clientes                   | `customers`, `customer-addresses`                                                            |
 | Estoque                    | `inventory`, `inventory-movements`                                                           |
+| Webhooks                   | `webhook-subscriptions`                                                                       |
 | Acesso e saúde             | `permissions`, `core-permissions`, `health`                                                  |
 
 ## Próximos Passos

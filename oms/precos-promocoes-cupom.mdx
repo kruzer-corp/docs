@@ -4,33 +4,38 @@ description: "Camada comercial do OMS: tabelas de preço, campanhas promocionais
 icon: "tag"
 ---
 
-O OMS centraliza toda a camada comercial que determina quanto cada item custa e quais descontos se aplicam no momento da compra. Esse módulo é composto por três elementos que atuam em sequência: as tabelas de preço, que definem o preço base; as promoções, que aplicam descontos automáticos por regras; e os cupons, que aplicam descontos acionados pelo cliente com um código. Juntos, eles eliminam a necessidade de cada canal gerenciar sua própria régua de preços e garantem consistência na aplicação de campanhas em toda a rede.
+O OMS centraliza a camada comercial que determina quanto cada item custa e quais descontos se aplicam. Ela é composta pelas tabelas de preço, que definem o preço base, e pelas promoções, que descrevem campanhas de desconto por regras. Juntas, eliminam a necessidade de cada canal gerenciar sua própria régua de preços e garantem consistência na configuração de campanhas em toda a rede. O suporte a cupons de desconto está planejado (veja abaixo).
 
 ## Tabelas de Preço
 
-As tabelas de preço chegam ao OMS via integração com o ERP — não há criação manual de tabelas pela interface administrativa. Cada tabela possui um código único por account e armazena, para cada item, três valores: o custo (interno, não distribuído para canais), o preço de lista ("de") e o preço de venda ("por"). É possível configurar vigência por item, permitindo rebaixas pontuais sem a necessidade de criar uma nova tabela.
+As tabelas de preço (headers) são gerenciadas pela API do OMS: podem ser criadas, editadas e removidas, cada uma com um código único por account (o código é imutável após a criação). Já os **itens** de cada tabela são ingeridos de forma assíncrona — o endpoint de itens recebe o lote, responde `202 Accepted` e publica os itens para processamento. Cada SKU é validado contra o catálogo de produtos; itens de SKUs inexistentes são rejeitados.
 
-Uma estratégia pode ter uma tabela de preços primária e tabelas de fallback com prioridade definida. Canais específicos dentro de uma estratégia podem ter sua própria tabela, que sobrescreve a tabela primária apenas para aquele canal. Essa flexibilidade permite que uma mesma operação pratique preços diferentes por canal — iFood, VTEX e loja física, por exemplo — sem duplicar estruturas.
+Cada item armazena três valores: o custo (interno, não distribuído para canais), o preço de lista ("de") e o preço de venda ("por"). É possível configurar vigência por item (data de início e fim), permitindo rebaixas pontuais sem a necessidade de criar uma nova tabela.
+
+Tabelas de preço podem ser vinculadas a estratégias, e um canal específico dentro de uma estratégia pode apontar para sua própria tabela, sobrescrevendo a da estratégia apenas para aquele canal. Essa flexibilidade permite que uma mesma operação pratique preços diferentes por canal — iFood, VTEX e loja física, por exemplo — sem duplicar estruturas.
+
+<Note>
+  A ordenação de tabelas primária e de fallback por prioridade em uma estratégia faz parte do escopo planejado. Hoje o vínculo entre estratégia e tabela é apenas ativado ou desativado, sem ordem de precedência.
+</Note>
 
 ## Promoções
 
-As promoções permitem que o time comercial configure campanhas de desconto diretamente no OMS, sem dependência de desenvolvimento. A criação segue um assistente em três passos.
+As promoções permitem que o time comercial configure campanhas de desconto diretamente no OMS, sem dependência de desenvolvimento. Uma promoção reúne:
 
-No primeiro passo, são definidos os dados básicos da promoção: nome, status, descrição, período de vigência e recorrência opcional. No segundo passo, é configurada a elegibilidade — quais clusters ou estratégias participam da campanha, com opções de inclusão ou exclusão. No terceiro passo, são definidas as regras: as condições de produto que ativam a promoção (Bloco A) e o benefício concedido ao cliente (Bloco B).
+- **Vigência** — período de validade, com recorrência opcional por dia da semana.
+- **Elegibilidade** — quais clusters ou estratégias participam da campanha, com inclusão ou exclusão.
+- **Condições e benefício** — as condições que qualificam a promoção e as restrições de item por produto ou categoria (o alvo), somadas ao benefício concedido ao cliente.
+- **Limites de uso e acumulação** — controles de quantas vezes a promoção pode ser aplicada e se ela acumula com outras.
 
-As promoções são aplicadas automaticamente pelo OMS no momento da criação do pedido, sem que o cliente precise informar nenhum código.
+Toda promoção nasce inativa e precisa ser ativada explicitamente. Enquanto estiver ativa e dentro da vigência, seu conteúdo fica bloqueado para edição — é possível apenas ativá-la ou desativá-la — preservando a consistência das campanhas em curso.
+
+<Note>
+  Hoje o OMS oferece a gestão (cadastro, edição e ativação) das promoções. O motor que aplica automaticamente os descontos no momento da criação do pedido está em construção; nesta fase, o pedido registra os descontos informados no payload de entrada.
+</Note>
 
 ## Cupons
 
-O módulo de cupons permite criar e distribuir códigos de desconto com regras controladas. Um cupom define o tipo de desconto (percentual ou valor fixo), o valor, o período de vigência, os canais e produtos aplicáveis, e os limites de uso total e por cliente.
-
-Existem dois tipos de cupom. O cupom único usa um único código compartilhado por múltiplos clientes, com um limite total de resgates configurável — adequado para campanhas de massa como `BLACKFRIDAY10`. O cupom multi-uso gera um lote de códigos individuais, cada um válido para uso único, adequado para distribuição personalizada pelo time de atendimento.
-
-O cupom é aplicado como última etapa do pipeline de preço, após a promoção. Por isso, o desconto final de um pedido pode combinar uma promoção automática com um cupom — desde que a promoção permita acumulação. Dois cupons, no entanto, nunca são acumuláveis no mesmo pedido. Em caso de cancelamento do pedido, o cupom utilizado é automaticamente estornado, preservando o limite de uso.
-
-<Tip>
-  Toda a rastreabilidade de uso de cupom fica registrada no OMS: qual pedido utilizou, em qual canal, quando e por qual cliente.
-</Tip>
+O suporte a cupons de desconto — códigos acionados pelo cliente, com tipo de desconto, vigência, limites de uso e estorno no cancelamento — faz parte do escopo planejado da camada comercial e **ainda não está implementado** no OMS. Esta seção será atualizada quando a funcionalidade estiver disponível.
 
 ## Próximos Passos
 
