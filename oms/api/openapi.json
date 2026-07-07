@@ -25515,14 +25515,8 @@
   "tags": [],
   "servers": [
     {
-      "url": "https://oms-api.{tenant}.krzlabs.io",
-      "description": "Produção — cada tenant em seu subdomínio dedicado.",
-      "variables": {
-        "tenant": {
-          "default": "tenant",
-          "description": "Identificador do tenant (ex.: fastshop)."
-        }
-      }
+      "url": "https://oms-api.tenant.krzlabs.io",
+      "description": "Produção — troque 'tenant' pelo subdomínio da sua conta."
     },
     {
       "url": "http://localhost:3000",
