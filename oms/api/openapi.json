@@ -10493,7 +10493,7 @@
         ]
       },
       "post": {
-        "description": "Validates a batch of price list items and publishes one Kafka event per item. The endpoint is agnostic — clients integrate over HTTP and the OMS translates each item into a PRICE_LIST_ITEM_UPSERTED event on oms.{accountCode}.price-list-items.ingestion.",
+        "description": "Validates a batch of price list items and queues them for asynchronous processing. Clients integrate purely over HTTP; each item is ingested asynchronously and becomes available once processed.",
         "operationId": "PriceListsController_upsertItems_v1",
         "parameters": [
           {
@@ -10520,7 +10520,7 @@
         },
         "responses": {
           "202": {
-            "description": "Batch accepted and published to Kafka.",
+            "description": "Batch accepted for asynchronous processing.",
             "content": {
               "application/json": {
                 "schema": {
@@ -13256,7 +13256,7 @@
         ]
       },
       "post": {
-        "description": "Validates a batch of absolute inventory positions and publishes them to Kafka for asynchronous processing. Each item overwrites the position (onHand, blocked, safetyStock) for its sku/strategyCode. Returns 202 with a correlation id shared by every published event of the batch.",
+        "description": "Validates a batch of absolute inventory positions and queues them for asynchronous processing. Each item overwrites the position (onHand, blocked, safetyStock) for its sku/strategyCode. Returns 202 with a correlation id shared by every event of the batch.",
         "operationId": "InventoryController_ingest_v1",
         "parameters": [],
         "requestBody": {
@@ -13272,7 +13272,7 @@
         },
         "responses": {
           "202": {
-            "description": "Batch accepted and published to Kafka.",
+            "description": "Batch accepted for asynchronous processing.",
             "content": {
               "application/json": {
                 "schema": {
@@ -13428,7 +13428,7 @@
     },
     "/api/v1/inventory-movements": {
       "get": {
-        "description": "Returns a paginated history of inventory movements (SNAPSHOT and DELTA records) read from the Elasticsearch audit log, scoped to the caller account and ordered newest-first (\"occurred_at\" desc) by default. Filter by exact \"sku\", free-text \"q\" matching SKU or product name (case-insensitive substring), \"strategyCode\", \"reason\" and \"updateType\". Each item exposes the running balance (\"balance_after\") recorded when the movement occurred, which may be null for deltas still awaiting backfill.",
+        "description": "Returns a paginated history of inventory movements (SNAPSHOT and DELTA records) from the audit log, scoped to the caller account and ordered newest-first (\"occurred_at\" desc) by default. Filter by exact \"sku\", free-text \"q\" matching SKU or product name (case-insensitive substring), \"strategyCode\", \"reason\" and \"updateType\". Each item exposes the running balance (\"balance_after\") recorded when the movement occurred, which may be null for deltas still awaiting backfill.",
         "operationId": "InventoryMovementsController_list_v1",
         "parameters": [
           {
@@ -31251,7 +31251,7 @@
             "type": "object",
             "nullable": true,
             "additionalProperties": true,
-            "description": "Free-form metadata propagated to the consumer",
+            "description": "Free-form metadata propagated with the item.",
             "example": {
               "source": "boletim_2026_05"
             }
@@ -32377,7 +32377,7 @@
         "properties": {
           "accepted": {
             "type": "number",
-            "description": "Number of items accepted and published to Kafka (always equals items.length on 202).",
+            "description": "Number of items accepted for processing (always equals items.length on 202).",
             "example": 150
           },
           "correlation_id": {
