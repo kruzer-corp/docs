@@ -14,7 +14,7 @@ Cada tenant é exposto em um subdomínio dedicado de `krzlabs.io`:
 https://oms-api.{tenant}.krzlabs.io
 ```
 
-Exemplo: `https://oms-api.fastshop.krzlabs.io`. Em desenvolvimento, a API roda em `http://localhost:3000`. A maioria dos endpoints de domínio é versionada pelo prefixo `/api/v1/`; o catálogo de permissões consumido pelo IAM fica sob `/api/core/v1/` e as sondas de saúde sob `/api/health/`.
+Exemplo: `https://oms-api.fastshop.krzlabs.io`. Em desenvolvimento, a API roda em `http://localhost:3000`. Os endpoints de domínio são versionados pelo prefixo `/api/v1/`.
 
 ## Autenticação
 
@@ -32,8 +32,6 @@ Todo endpoint de domínio exige autenticação e aceita dois esquemas:
 ```http
 Authorization: Bearer <jwt_token>
 ```
-
-As sondas de saúde (`/api/health/live` e `/api/health/ready`) são públicas e não exigem autenticação.
 
 <Note>
   O JWT e as permissões são emitidos pela plataforma de Identidade e Acesso da Kruzer. Veja [IAM e Autenticação](/plataforma-kruzer/iam-autenticacao) para detalhes.
@@ -126,7 +124,7 @@ A referência cobre os seguintes grupos de recursos:
 | Clientes                   | `customers`, `customer-addresses`                                                            |
 | Estoque                    | `inventory`, `inventory-movements`                                                           |
 | Webhooks                   | `webhook-subscriptions`                                                                       |
-| Acesso e saúde             | `permissions`, `core-permissions`, `health`                                                  |
+| Acesso                     | `permissions`                                                                                |
 
 ## Próximos Passos
 
