@@ -4,7 +4,7 @@ description: "Gestão completa do ciclo de vida de pedidos — do recebimento at
 icon: "bag-shopping"
 ---
 
-O Pedido é a entidade central do OMS. Tudo gira em torno dele: o estoque é reservado para ele, as entregas são geradas a partir dele e o cliente é identificado por ele. Cada compra que entra no sistema — seja via integração de canal, via API ou criada manualmente — precisa ser recebida, validada, priorizada, roteada e acompanhada até a conclusão.
+O Pedido é a entidade central do OMS. Tudo gira em torno dele: as entregas são geradas a partir dele e o cliente é identificado por ele. Cada compra que entra no sistema — seja via integração de canal, via API ou criada manualmente — precisa ser recebida, validada, roteada e acompanhada até a conclusão.
 
 Um pedido reúne quem comprou, o que comprou, como pagou, onde deve ser entregue, por qual canal chegou e em que estado se encontra. O cliente sempre enxerga uma única compra, ainda que ela se desdobre em entregas operacionais para execução.
 
@@ -47,10 +47,13 @@ Cada pedido carrega um snapshot do workflow de fulfillment no momento da sua cri
 
 <CardGroup cols={2}>
   <Card title="Máquina de Estado" icon="circle-nodes" href="/oms/maquina-de-estado">
-    Estados fixos e regras de transição do ciclo de vida do pedido
+    Estados e regras de transição do ciclo de vida do pedido
   </Card>
   <Card title="DOM" icon="route" href="/oms/dom">
     Como o motor de roteamento aloca entregas para cada pedido
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/oms/webhooks">
+    Notifique sistemas externos a cada evento de pedido
   </Card>
   <Card title="Fulfillment" icon="warehouse" href="/oms/fulfillment">
     O fluxo operacional de execução de cada entrega
