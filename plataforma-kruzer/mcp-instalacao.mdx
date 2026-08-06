@@ -7,7 +7,7 @@ icon: "plug"
 Esta página mostra como conectar o servidor MCP da documentação da Kruzer aos principais clientes do mercado. O endpoint é o mesmo em todos os casos:
 
 ```
-https://kruzer.ai/docs/mcp
+https://docs.kruzer.ai/mcp
 ```
 
 <Note>
@@ -30,7 +30,7 @@ https://kruzer.ai/docs/mcp
       "mcpServers": {
         "kruzer-docs": {
           "type": "http",
-          "url": "https://kruzer.ai/docs/mcp"
+          "url": "https://docs.kruzer.ai/mcp"
         }
       }
     }
@@ -43,7 +43,7 @@ https://kruzer.ai/docs/mcp
     Adicione o servidor pelo terminal:
 
     ```bash
-    claude mcp add --transport http kruzer-docs https://kruzer.ai/docs/mcp
+    claude mcp add --transport http kruzer-docs https://docs.kruzer.ai/mcp
     ```
 
     Verifique a conexão com:
@@ -61,7 +61,7 @@ https://kruzer.ai/docs/mcp
     3. Preencha:
        - **Name:** `kruzer-docs`
        - **Type:** `HTTP`
-       - **URL:** `https://kruzer.ai/docs/mcp`
+       - **URL:** `https://docs.kruzer.ai/mcp`
     4. Salve. O servidor aparece como ativo na lista.
 
     Alternativamente, edite `~/.cursor/mcp.json`:
@@ -70,7 +70,7 @@ https://kruzer.ai/docs/mcp
     {
       "mcpServers": {
         "kruzer-docs": {
-          "url": "https://kruzer.ai/docs/mcp"
+          "url": "https://docs.kruzer.ai/mcp"
         }
       }
     }
@@ -85,7 +85,7 @@ https://kruzer.ai/docs/mcp
       "github.copilot.chat.mcp.servers": {
         "kruzer-docs": {
           "type": "http",
-          "url": "https://kruzer.ai/docs/mcp"
+          "url": "https://docs.kruzer.ai/mcp"
         }
       }
     }
@@ -105,7 +105,7 @@ https://kruzer.ai/docs/mcp
     2. Escolha **Custom MCP server**.
     3. Preencha:
        - **Name:** `Kruzer Docs`
-       - **Server URL:** `https://kruzer.ai/docs/mcp`
+       - **Server URL:** `https://docs.kruzer.ai/mcp`
        - **Authentication:** `None`
     4. Ative o conector na conversa para que o modelo possa consultar a doc.
 
