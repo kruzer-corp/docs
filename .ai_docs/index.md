@@ -8,9 +8,8 @@ A Kruzer é uma **plataforma multi-módulo** e a documentação reflete essa est
 
 - **Plataforma** (`plataforma-kruzer/`) — conceitos transversais: IAM (autenticação, permissões, SSO).
 - **DevTools** (`devtools/`) — iPaaS (Triggers/Consumers), API Gateway, CLI `krz`, IDK `@kruzer/idk`.
+- **OMS** (`oms/`) — gestão de pedidos, tokens MCP e referência de API auto-gerada.
 - **PIM** (`pim/`) — gestão de informações de produto, com referência de API auto-gerada a partir do `pim-api`.
-
-Um futuro módulo **OMS** terá tab própria quando for lançado.
 
 ## Documentação Disponível
 

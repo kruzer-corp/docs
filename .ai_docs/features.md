@@ -5,7 +5,7 @@ Mapa do conteúdo do repositório (multi-módulo) — onde cada tópico vive.
 ## Páginas-Chave
 
 ### `index.mdx` — Home Institucional Kruzer
-Hub que apresenta a plataforma multi-módulo (DevTools, PIM, OMS futuro) e linka para a base compartilhada (IAM).
+Hub que apresenta a plataforma multi-módulo (DevTools, OMS, PIM) e linka para a base compartilhada (IAM).
 
 ## Tab Plataforma (`plataforma-kruzer/`)
 
@@ -70,9 +70,9 @@ KrzLogger; Tratamento de erros.
 
 ## Funcionalidades de Suporte ao Repositório
 
-- **Tabs por módulo** em `docs.json` — preparado para crescer (OMS futuro).
+- **Tabs por módulo** em `docs.json` — hoje Plataforma, DevTools, OMS e PIM; a estrutura cresce por tab a cada novo módulo.
 - **`contextual.options`** — botões "Open with…" (ChatGPT, Claude, Cursor, VSCode, copy, view) habilitados em todas as páginas.
-- **OpenAPI auto-gerado** — referência da API do PIM é renderizada pelo Mintlify a partir de `pim/api/openapi.json` (ver `integrations.md` para o fluxo).
+- **OpenAPI auto-gerado** — as referências de API do OMS e do PIM são renderizadas pelo Mintlify a partir de `oms/api/openapi.json` e `pim/api/openapi.json` (ver `integrations.md` para os fluxos, que são diferentes entre os dois).
 - **Diagramas Mermaid** — usados em conceitos com hierarquia (catálogos, IAM, workflow).
 
 ## TODO / Lacunas Conhecidas

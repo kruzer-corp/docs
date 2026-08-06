@@ -89,7 +89,7 @@ Este repositório de documentação tem integrações em duas categorias:
 ### `iam-api` (Identidade transversal)
 **Tipo:** API de identidade (autenticação JWT, RBAC, SSO Microsoft/Azure AD).
 **Repositório fonte:** `kruzer-corp/iam-api` (privado).
-**Papel:** transversal — atende DevTools, PIM e (futuramente) OMS.
+**Papel:** transversal — atende DevTools, OMS e PIM.
 **Páginas da doc:** `plataforma-kruzer/iam-autenticacao.mdx`, `plataforma-kruzer/iam-permissoes.mdx`, `plataforma-kruzer/sso.mdx`.
 **Sincronização:** mudanças no fluxo de auth, política de tokens ou suporte a novos provedores SSO devem refletir aqui.
 
