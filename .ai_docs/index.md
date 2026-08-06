@@ -6,11 +6,10 @@ Este repositório contém a **documentação pública da plataforma Kruzer**, pu
 
 A Kruzer é uma **plataforma multi-módulo** e a documentação reflete essa estrutura via tabs separadas no `docs.json`:
 
-- **Plataforma** (`plataforma-kruzer/`) — conceitos transversais: IAM (autenticação, permissões, SSO).
+- **Plataforma** (`plataforma-kruzer/`) — conceitos transversais: IAM (autenticação, permissões, SSO) e o MCP público da própria documentação.
 - **DevTools** (`devtools/`) — iPaaS (Triggers/Consumers), API Gateway, CLI `krz`, IDK `@kruzer/idk`.
+- **OMS** (`oms/`) — gestão de pedidos, tokens MCP e referência de API auto-gerada.
 - **PIM** (`pim/`) — gestão de informações de produto, com referência de API auto-gerada a partir do `pim-api`.
-
-Um futuro módulo **OMS** terá tab própria quando for lançado.
 
 ## Documentação Disponível
 
@@ -31,4 +30,4 @@ Um futuro módulo **OMS** terá tab própria quando for lançado.
 - Repositório: `kruzer-corp/docs` (branch principal: `main`)
 - Deploy: automático via Mintlify GitHub App ao push em `main`
 - Preview local: `mint dev` (requer `npm i -g mint`) — http://localhost:3000
-- Logo aponta para: `https://kruzer.ai/`
+- Logo aponta para: `https://docs.kruzer.ai/`

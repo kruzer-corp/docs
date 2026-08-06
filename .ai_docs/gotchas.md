@@ -83,10 +83,10 @@ Armadilhas e cuidados específicos ao trabalhar neste repositório de documenta�
 **Por que parece estranho:** parece duplicação ou exagero.
 **Por que está certo:** cada item habilita um botão de "abrir/usar" diferente — remover algum perde uma forma de consumo da doc.
 
-### `logo.href: https://kruzer.ai/`
-**Configuração:** clique no logo leva a `kruzer.ai`, não à home da documentação.
-**Por que parece estranho:** convenção comum é logo apontar para a home da própria doc.
-**Por que está certo:** intencional — direciona usuários para o site institucional/marketing.
+### `logo.href` é URL absoluta, não `/`
+**Configuração:** `https://docs.kruzer.ai/` — a home da própria documentação, em URL absoluta.
+**Por que parece estranho:** para ir à home bastaria `/`, e a URL absoluta força navegação externa (recarrega a página) em vez do roteamento interno da Mintlify.
+**Por que está certo:** até ago/2026 o logo apontava para o site institucional (`https://kruzer.ai/`) de propósito; com a doc migrada para o subdomínio `docs.kruzer.ai`, o destino passou a ser a home da doc — mantendo o formato absoluto. Não "restaurar" o destino antigo.
 
 ## Débitos Técnicos Conhecidos
 
