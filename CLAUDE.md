@@ -61,7 +61,7 @@ The Mintlify integration is configured in `docs.json` under the PIM tab → "Ref
 - **End pages with a "Próximos Passos" `<CardGroup>`** linking to 2–4 related pages — established pattern across the site.
 - **Cross-module links are encouraged**: PIM pages can link to Plataforma (IAM) and DevTools (iPaaS, API Gateway), and vice-versa.
 - **Branch naming:** observed convention is `docs/<assunto>` (e.g. `docs/multi-modulo-pim`).
-- **Logo click target** is intentionally `https://kruzer.ai/` (set in `docs.json`), not the docs home — don't "fix" it.
+- **Logo click target** is `https://docs.kruzer.ai/` (set in `docs.json`) — the docs home, since the site moved to its own subdomain. It used to point at the institutional site (`https://kruzer.ai/`); changed deliberately in Aug/2026, so don't "restore" it.
 
 ## Where to Look First
 
