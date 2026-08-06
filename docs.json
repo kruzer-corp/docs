@@ -208,7 +208,7 @@
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg",
-    "href": "https://kruzer.ai/"
+    "href": "https://docs.kruzer.ai/"
   },
   "contextual": {
     "options": [
