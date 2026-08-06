@@ -75,13 +75,11 @@ Este repositório de documentação tem integrações em duas categorias:
 **Sincronização:** mudanças no template de provisionamento devem refletir aqui.
 
 ### `pim-api` (Backend do PIM)
-**Tipo:** API backend (TypeScript + Koa + `@kruzer/sdk` + MongoDB + Kafka).
+**Tipo:** API backend.
 **Repositório fonte:** `kruzer-corp/pim-api` (privado).
 **Páginas da doc:** todo o conteúdo de `pim/` — conceitos, funcionalidades e referência de API.
-**Integração técnica especial — geração de OpenAPI:**
-- O script `pim-api/scripts/generate-openapi.ts` faz parsing estático dos controllers em `src/features/*/actions/*` e emite `openapi.json` na raiz do `pim-api`.
-- O comando `npm run generate:openapi` regenera o spec.
-- O arquivo gerado é **copiado manualmente** para `pim/api/openapi.json` neste repo de docs.
+**Integração técnica — OpenAPI:**
+- O spec é gerado no `pim-api` (procedimento documentado naquele repo) e **copiado manualmente** para `pim/api/openapi.json` neste repo de docs.
 - Mintlify consome via campo `openapi` no group "Referência da API" do `docs.json`.
 - **TODO**: automatizar a sincronização (CI no `pim-api` que abre PR aqui ao detectar diff).
 **Sincronização:** sempre que um endpoint for adicionado, removido ou alterado no `pim-api`, regerar e atualizar este repo.
