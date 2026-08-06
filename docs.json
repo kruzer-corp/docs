@@ -140,6 +140,13 @@
             ]
           },
           {
+            "group": "Assistentes de IA",
+            "icon": "robot",
+            "pages": [
+              "oms/mcp-tokens"
+            ]
+          },
+          {
             "group": "Referência da API",
             "openapi": {
               "source": "oms/api/openapi.json",

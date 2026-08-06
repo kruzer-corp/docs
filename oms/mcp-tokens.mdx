@@ -1,0 +1,206 @@
+---
+title: "Tokens MCP"
+description: "Gere um token MCP e conecte seu assistente de IA ao OMS com a sua própria identidade e permissões"
+icon: "robot"
+---
+
+O OMS expõe um **servidor MCP** (*Model Context Protocol*) que transforma a API REST do OMS em ferramentas para assistentes de IA — Claude, Codex, ChatGPT e qualquer cliente compatível. Conectado ao MCP, o assistente consulta estoque, pedidos, estratégias e catálogo, e também **executa ações de escrita** (criar pedidos, transicionar status, cadastrar posições de estoque, atualizar regras do DOM).
+
+Para conectar, você precisa de um **token MCP**: uma credencial nomeada, no estilo *Personal Access Token*, emitida pela plataforma de Identidade e Acesso (IAM) e gerenciada por você mesmo na tela **Tokens MCP**.
+
+<Warning>
+  O token MCP **herda todas as suas permissões atuais no OMS**, incluindo as de escrita. Trate-o como uma senha: não compartilhe, não versione em repositórios e revogue imediatamente se suspeitar de exposição.
+</Warning>
+
+---
+
+## O que o assistente consegue fazer
+
+O servidor MCP do OMS é um adaptador fino sobre a API REST — ele não cria regras próprias, apenas expõe a superfície existente como ferramentas:
+
+| Domínio                | Leitura                                                          | Escrita                                                        |
+| ---------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| Estoque                | Consulta de posições e status por SKU                            | Ingestão de posições em lote (snapshot absoluto)               |
+| Pedidos                | Listagem com filtros e detalhe completo com timeline             | Criação, transição de status, cancelamento, pagamentos          |
+| Fulfillment            | Fulfillment orders, remessas e eventos de rastreio               | Transição de FO, faturamento, remessas e rastreio               |
+| Estratégias e clusters | Visão geral, vínculos e agregados                                | Criação e atualização de estratégias e vínculos                 |
+| Catálogo e preços      | Produtos, categorias, listas de preço e promoções                | Upsert de produtos, listas de preço em lote e promoções         |
+| Cadastros base         | Transportadoras, canais, operadores, modalidades, status          | Criação e atualização dos cadastros                             |
+| Clientes               | Clientes e endereços                                             | Criação e atualização de clientes e endereços                   |
+| Máquina de estado      | Máquinas e status, com busca textual                             | Criação, atualização e definição da máquina padrão              |
+| Webhooks               | Assinaturas e catálogo de tipos de evento                        | Criação, atualização e remoção de assinaturas                   |
+| DOM                    | Regras de roteamento e configuração da conta                     | Criação, atualização e remoção de regras; configuração da conta |
+
+<Note>
+  Toda **exclusão** pedida pelo assistente acontece em duas etapas: a primeira chamada devolve um preview do que será removido e **não executa nada**; só a confirmação explícita efetiva a operação.
+</Note>
+
+---
+
+## Antes de começar
+
+<AccordionGroup>
+  <Accordion title="Você precisa ter senha definida na plataforma" icon="key">
+    A criação do token exige confirmação da sua **senha** (*sudo gate*) — a sessão de login, por si só, não basta. Usuários provisionados exclusivamente por SSO que nunca definiram senha não conseguem passar nesse passo; use o fluxo de recuperação de senha antes.
+  </Accordion>
+
+  <Accordion title="Seu cliente de IA precisa suportar MCP remoto por HTTP" icon="plug">
+    O servidor usa transporte **Streamable HTTP** com autenticação por header `Authorization`. Claude Code, Claude Desktop, Codex e ChatGPT (conectores) atendem esse requisito.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Gerar o token
+
+<Steps>
+  <Step title="Abra a tela de Tokens MCP">
+    No OMS, acesse o menu **Configurações → Tokens MCP**. A tela lista os seus tokens com nome, status, último uso e data de criação.
+  </Step>
+
+  <Step title="Clique em Criar MCP Token">
+    O botão abre o painel de criação.
+  </Step>
+
+  <Step title="Dê um nome ao token">
+    Use um nome que identifique **onde** o token vai ser usado — por exemplo `Claude do notebook` ou `Codex da máquina de trabalho`. O nome tem entre 2 e 60 caracteres e serve para você saber o que revogar depois.
+
+    <Tip>
+      Um token por cliente/máquina. Assim, revogar um deles não derruba as outras integrações.
+    </Tip>
+  </Step>
+
+  <Step title="Confirme sua senha">
+    Por segurança, emitir a credencial exige a sua senha da plataforma. Após 5 tentativas incorretas, o fluxo fica bloqueado por 15 minutos (janela deslizante) — a revogação de tokens **não** é afetada por esse bloqueio.
+  </Step>
+
+  <Step title="Copie o token e a URL do servidor">
+    A tela exibe o **token**, a **URL do servidor MCP** do ambiente e um guia de conexão com o comando/JSON pronto para cada cliente (Claude Code, Claude Desktop, Codex e ChatGPT).
+
+    <Warning>
+      O token é exibido apenas nesse momento. Se fechar a tela sem copiar, use a ação **Revelar** na listagem — ela pede a senha novamente e mostra o mesmo token.
+    </Warning>
+  </Step>
+</Steps>
+
+---
+
+## Conectar seu assistente
+
+A própria tela já entrega os comandos com o seu token e a URL do ambiente preenchidos. Os exemplos abaixo mostram o formato — substitua `<TOKEN_MCP>` e `<URL_DO_SERVIDOR_MCP>` pelos valores exibidos.
+
+A URL segue o padrão `https://oms-mcp.{tenant}.krzlabs.io/mcp` em ambientes publicados e `http://127.0.0.1:3100/mcp` em desenvolvimento local.
+
+<AccordionGroup>
+  <Accordion title="Claude Code (CLI)" icon="terminal">
+    ```bash
+    claude mcp add --transport http kruzer-oms <URL_DO_SERVIDOR_MCP> \
+      --header "Authorization: Bearer <TOKEN_MCP>"
+    ```
+
+    Confirme com `claude mcp list` — o servidor `kruzer-oms` deve aparecer como `connected`.
+  </Accordion>
+
+  <Accordion title="Claude Desktop" icon="desktop">
+    Adicione ao `claude_desktop_config.json` e reinicie o Claude Desktop:
+
+    ```json
+    {
+      "mcpServers": {
+        "kruzer-oms": {
+          "type": "http",
+          "url": "<URL_DO_SERVIDOR_MCP>",
+          "headers": {
+            "Authorization": "Bearer <TOKEN_MCP>"
+          }
+        }
+      }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Codex" icon="code">
+    Adicione ao `~/.codex/config.toml`:
+
+    ```toml
+    [mcp_servers.kruzer-oms]
+    url = "<URL_DO_SERVIDOR_MCP>"
+    http_headers = { "Authorization" = "Bearer <TOKEN_MCP>" }
+    ```
+  </Accordion>
+
+  <Accordion title="ChatGPT" icon="comment-dots">
+    Em **Configurações → Conectores → Modo desenvolvedor**, adicione um conector remoto com a URL do servidor MCP e o token como autorização.
+
+    Para uso via API (Responses API):
+
+    ```json
+    {
+      "type": "mcp",
+      "server_label": "kruzer-oms",
+      "server_url": "<URL_DO_SERVIDOR_MCP>",
+      "authorization": "<TOKEN_MCP>"
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Comece com uma pergunta de leitura para validar a conexão — por exemplo *"quais estratégias de fulfillment estão ativas?"* — antes de pedir qualquer ação de escrita.
+</Tip>
+
+---
+
+## Gerenciar seus tokens
+
+A listagem em **Configurações → Tokens MCP** oferece três ações:
+
+| Ação        | O que faz                                                                                       | Pede senha |
+| ----------- | ----------------------------------------------------------------------------------------------- | ---------- |
+| **Revelar** | Exibe novamente o token de um token ativo, junto com o guia de conexão. Indisponível em tokens revogados. | Sim        |
+| **Revogar** | Invalida o token imediatamente. O registro continua na listagem com o selo *Revogado*.          | Não        |
+| **Excluir** | Remove o token da listagem e invalida o acesso na hora.                                         | Não        |
+
+Pontos importantes do ciclo de vida:
+
+- **Tokens não expiram.** O que limita um token é a revogação — por isso mantenha a lista enxuta e revogue o que não está mais em uso.
+- **Revogar e excluir têm efeito imediato**: a próxima chamada do assistente falha com `401`.
+- **Permissões acompanham as suas.** Se seus acessos mudarem no IAM, o token reflete a mudança em poucos minutos, sem precisar recriá-lo. Para corte imediato, revogue.
+- **Logout não derruba tokens MCP** — eles são credenciais independentes da sua sessão de navegador.
+
+---
+
+## Como o token é protegido
+
+O token MCP **não é uma chave da API do OMS**. Ele é vinculado ao servidor MCP (*audience* dedicado) e só serve para isso: apresentá-lo diretamente na API REST do OMS resulta em rejeição.
+
+<Steps>
+  <Step title="O cliente de IA envia o token MCP">
+    O servidor MCP valida assinatura, emissor e *audience*. Token ausente, inválido ou de outro tipo (por exemplo um token de sessão) → `401`.
+  </Step>
+  <Step title="O servidor troca o token no IAM">
+    O token MCP nunca é repassado ao OMS. O servidor o troca no IAM por um **token de curta duração** (cerca de 5 minutos), e é esse token que chama a API do OMS. A troca também recalcula suas permissões efetivas.
+  </Step>
+  <Step title="O OMS aplica as suas permissões">
+    A autorização final é do OMS, com as permissões da sua identidade — o assistente não consegue fazer nada que você não poderia fazer pela interface.
+  </Step>
+</Steps>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Referência da API do OMS" icon="book-open" href="/oms/api/visao-geral">
+    A superfície REST que o servidor MCP expõe como ferramentas
+  </Card>
+  <Card title="Identidade e Acesso" icon="lock" href="/plataforma-kruzer/iam-autenticacao">
+    Como a plataforma autentica e emite credenciais
+  </Card>
+  <Card title="Permissões" icon="user-shield" href="/plataforma-kruzer/iam-permissoes">
+    Como as permissões que o token herda são definidas
+  </Card>
+  <Card title="MCP da Documentação" icon="robot" href="/plataforma-kruzer/mcp-visao-geral">
+    O MCP público da doc — complementar ao MCP operacional do OMS
+  </Card>
+</CardGroup>
