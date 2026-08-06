@@ -31,4 +31,4 @@ Um futuro módulo **OMS** terá tab própria quando for lançado.
 - Repositório: `kruzer-corp/docs` (branch principal: `main`)
 - Deploy: automático via Mintlify GitHub App ao push em `main`
 - Preview local: `mint dev` (requer `npm i -g mint`) — http://localhost:3000
-- Logo aponta para: `https://kruzer.ai/`
+- Logo aponta para: `https://docs.kruzer.ai/`

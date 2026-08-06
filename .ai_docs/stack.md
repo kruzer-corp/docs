@@ -27,7 +27,7 @@ Campos relevantes:
 | `colors.dark` | `#4F46E5` |
 | `favicon` | `/favicon.svg` |
 | `logo.light` / `logo.dark` | `/logo/light.svg`, `/logo/dark.svg` |
-| `logo.href` | `https://kruzer.ai/` |
+| `logo.href` | `https://docs.kruzer.ai/` |
 | `navigation.tabs` | Estrutura hierárquica de tabs → groups → pages |
 | `contextual.options` | `copy`, `view`, `chatgpt`, `claude`, `cursor`, `vscode` (botões "Open with…") |
 | `footer.socials.linkedin` | `https://linkedin.com/company/kruzerio` |
