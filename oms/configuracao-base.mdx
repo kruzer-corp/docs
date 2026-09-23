@@ -8,15 +8,17 @@ A Configuração Base reúne as entidades de cadastro que sustentam toda a opera
 
 O módulo está dividido em dois grupos: entidades com gerenciamento completo pela interface administrativa (Estratégias, Clusters, Canais, Transportadoras e Operadores) e entidades alimentadas exclusivamente por integração externa (Catálogo e Estoque), nas quais a interface oferece apenas consulta e configuração mínima.
 
-## Estratégias
+## Estratégias <span className="krz-tag krz-tag--upd">atualizado</span>
 
 Estratégias representam os pontos de fulfillment da operação — lojas físicas, centros de distribuição, dark stores ou sellers. Cada estratégia é o nó operacional onde o estoque está posicionado, onde os operadores atuam e onde o DOM Engine irá alocar pedidos. Toda a rastreabilidade de execução está vinculada à estratégia responsável pelo atendimento.
 
 O cadastro de uma estratégia inclui código único, tipo, status e o cluster ao qual pertence. Estratégias podem ser ativadas, editadas e desativadas pelo administrador. Enquanto uma estratégia estiver ativa, ela é elegível para receber alocações do DOM.
 
-## Clusters
+A API também expõe visões agregadas por estratégia: um [resumo](/oms/api/strategies/summarize-strategies) com totais da conta, a [posição de estoque](/oms/api/strategies/list-strategy-inventory-positions) (com ATP — disponível para promessa — e indicadores) e uma [visão geral](/oms/api/strategies/summarize-strategy-operation) consolidada por estratégia individual.
 
-Clusters são agrupadores lógicos de estratégias. Servem para organizar operacionalmente os pontos de fulfillment — por exemplo, "Lojas SP Capital" ou "CDs Nordeste" — e funcionam como referência nas regras de roteamento do DOM, quando a decisão deve se aplicar a um conjunto de estratégias em vez de a uma unidade específica. O cadastro de um cluster exige apenas nome, código e cor de identificação visual.
+## Clusters <span className="krz-tag krz-tag--upd">atualizado</span>
+
+Clusters são agrupadores lógicos de estratégias. Servem para organizar operacionalmente os pontos de fulfillment — por exemplo, "Lojas SP Capital" ou "CDs Nordeste" — e funcionam como referência nas regras de roteamento do DOM, quando a decisão deve se aplicar a um conjunto de estratégias em vez de a uma unidade específica. O cadastro de um cluster exige apenas nome, código e cor de identificação visual. A API também expõe um [resumo agregado](/oms/api/clusters/summarize-clusters) dos clusters da conta.
 
 ## Canais
 
@@ -32,15 +34,27 @@ Transportadoras representam os serviços de entrega utilizados na operação —
 
 Operadores são os usuários responsáveis pela execução física do fulfillment — os profissionais de picking, packing e expedição que atuam dentro de cada estratégia. O cadastro de operadores permite que o OMS atribua tarefas e registre rastreabilidade de execução, identificando quem realizou cada etapa do processo.
 
-## Catálogo
+## Catálogo <span className="krz-tag krz-tag--upd">atualizado</span>
 
 O Catálogo no OMS é um read-model operacional — uma cópia local das informações de produto, independente da fonte de origem. Ele é alimentado exclusivamente por integração externa (ERP, PIM ou iPaaS) via chamadas REST de upsert, e não possui formulário de criação ou edição na interface administrativa.
 
 A sua função é enriquecer os itens dos pedidos e disponibilizar uma listagem de produtos para consulta operacional. O status de ativo ou inativo de cada produto é controlado pela fonte de origem. O OMS apenas reflete esse estado.
 
+Produtos podem ser agrupados em **categorias**, estas sim gerenciadas via API — criação, edição e exclusão — e usadas para filtrar a listagem de produtos. É possível [vincular produtos a uma categoria em lote](/oms/api/product-categories/link-and-unlink-products-in-batch), em vez de um a um.
+
 ## Estoque
 
 O Estoque também é um read-model, sincronizado a partir do ERP ou WMS via snapshots (posição completa) e deltas (atualizações incrementais). A interface e a API permitem consultar os níveis atuais e o histórico de movimentações. O `safety_stock` — reserva mínima que o OMS desconta ao calcular a disponibilidade (`disponível = onHand − reservado − bloqueado − safetyStock`) — chega junto com o snapshot da fonte de origem; não há edição manual de posição de estoque pela interface. O OMS não altera o estoque da origem: além de refletir as posições recebidas, ele registra movimentações internas próprias (como reserva e liberação de estoque ao criar ou cancelar entregas).
+
+## Configurações da Conta <span className="krz-tag krz-tag--novo">novo</span>
+
+Um pequeno conjunto de [parâmetros](/oms/api/account-configs/fetch-account-config) vale para a conta inteira e serve de comportamento default para o [DOM](/oms/dom):
+
+- **`no_split`** — quando ativado, o motor de roteamento nunca divide um pedido entre mais de uma estratégia.
+- **`selection_criterion`** — critério padrão de desempate entre estratégias que cobrem 100% da demanda (`CLOSEST`, `MOST_STOCK`, `LOWEST_COST` ou `FASTEST` — os dois últimos ainda operam como `MOST_STOCK`, ver [DOM](/oms/dom)).
+- **`timezone`** — fuso horário IANA default da conta, usado quando uma estratégia não define o próprio (`null` equivale a UTC).
+
+Uma regra do DOM pode sobrescrever o critério de seleção pontualmente; esta configuração é o valor usado quando nenhuma regra se aplica.
 
 <Note>
   Configuração Base é pré-requisito para todas as demais funcionalidades do OMS. Enquanto essas entidades não estiverem configuradas para um account, pedidos não fluem ponta a ponta.

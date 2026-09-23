@@ -20,6 +20,28 @@ A máquina de estado padrão da conta é usada por todas as estratégias que nã
 
 A máquina de estado é resolvida e congelada no momento em que a entrega é criada, de modo que mudanças de configuração não retroagem a entregas já em andamento.
 
+## Remessas <span className="krz-tag krz-tag--novo">novo</span>
+
+Uma entrega pode gerar uma ou mais **remessas** (*shipments*) — o volume físico efetivamente despachado, vinculado a uma transportadora. A remessa nasce em `SHIPMENT_CREATED`, ainda não despachada, e já abre sua própria linha de tempo de rastreio.
+
+[Criar uma remessa](/oms/api/fulfillment-order-shipments/create-a-shipment-on-a-fulfillment-order-synchronous) exige que a entrega esteja **Faturada** ou **Enviada** — expedir mercadoria pressupõe nota fiscal emitida. Uma entrega já Enviada aceita remessas adicionais, o que cobre o caso de um mesmo pedido sair em mais de um volume. A criação valida a transportadora e os SKUs de cada pacote, e **não** altera o status da entrega: esse avanço é uma etapa própria.
+
+## Rastreio <span className="krz-tag krz-tag--novo">novo</span>
+
+O ciclo de vida da remessa acompanha o que a transportadora informa, e o OMS valida [cada atualização recebida](/oms/api/fulfillment-order-shipments/report-a-shipment-status-update-synchronous-tracking-ingestion) contra o status atual. A corrente principal não admite salto de etapa:
+
+`DISPATCHED` → `IN_TRANSIT` → `OUT_FOR_DELIVERY` → `DELIVERED`
+
+Além dela existem estados auxiliares (`LABEL_CREATED`, `AWAITING_PICKUP`, `IN_TRANSFER`, `DELIVERY_FAILED`) e os terminais `DELIVERED`, `RETURNED`, `LOST` e `CANCELLED` — depois de um terminal, nada mais é aceito.
+
+Um evento cuja transição não é permitida é recusado com `422` e **nada** é registrado nem alterado. Um evento válido avança o status e entra na linha de tempo, os dois na mesma transação. Se o evento traz o código de rastreio e a remessa ainda não tem um, o código é preenchido — um código já existente nunca é sobrescrito.
+
+<Note>
+  Atualizar uma remessa não muda o status da entrega. A consolidação do estado da entrega a partir das suas remessas é uma etapa separada.
+</Note>
+
+A linha de tempo pode ser consultada nos dois níveis: [por remessa](/oms/api/fulfillment-order-shipment-tracking-events/list-a-shipments-tracking-events-chronological-timeline) e [pela entrega](/oms/api/fulfillment-order-tracking-events/list-a-fulfillment-orders-tracking-events-chronological-timeline) como um todo.
+
 ## Roadmap
 
 As capacidades abaixo fazem parte do escopo planejado do módulo e **ainda não estão disponíveis** via API:

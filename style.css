@@ -1,0 +1,92 @@
+/* ============================================================
+   REVISÃO — ANDAIME TEMPORÁRIO, NÃO PUBLICAR
+   ------------------------------------------------------------
+   Destaca visualmente o que entrou na revisão da aba OMS, para
+   conferência navegando na doc. Remover este arquivo e os
+   marcadores `krz-` das páginas antes de mesclar:
+
+     rm style.css
+     ./scripts/limpa-marcadores-revisao.sh
+
+   ============================================================ */
+
+:root {
+  --krz-novo: #3151ce;
+  --krz-novo-bg: rgba(49, 81, 206, 0.08);
+  --krz-upd: #0f7a52;
+  --krz-upd-bg: rgba(15, 122, 82, 0.08);
+}
+
+html.dark {
+  --krz-novo: #9db0f5;
+  --krz-novo-bg: rgba(122, 146, 235, 0.14);
+  --krz-upd: #6fd3a5;
+  --krz-upd-bg: rgba(78, 190, 141, 0.14);
+}
+
+/* ---- etiqueta ao lado do título da seção ---- */
+.krz-tag {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.6em;
+  padding: 0.15em 0.55em;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.62em;
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.krz-tag--novo {
+  color: var(--krz-novo);
+  background: var(--krz-novo-bg);
+}
+
+.krz-tag--upd {
+  color: var(--krz-upd);
+  background: var(--krz-upd-bg);
+}
+
+/* ---- faixa no topo da página ---- */
+.krz-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  margin: 0 0 1.5rem;
+  padding: 0.7em 0.95em;
+  border-left: 3px solid var(--krz-novo);
+  border-radius: 3px;
+  background: var(--krz-novo-bg);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.87rem;
+  line-height: 1.45;
+  color: var(--krz-novo);
+}
+
+.krz-banner b {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.78em;
+  white-space: nowrap;
+}
+
+/* ---- moldura em volta do bloco de uma seção nova ----
+   aplicada no título; desenha a borda esquerda até o próximo título */
+h2:has(.krz-tag--novo),
+h3:has(.krz-tag--novo) {
+  border-left: 3px solid var(--krz-novo);
+  padding-left: 0.6em;
+  margin-left: -0.75em;
+}
+
+h2:has(.krz-tag--upd),
+h3:has(.krz-tag--upd) {
+  border-left: 3px solid var(--krz-upd);
+  padding-left: 0.6em;
+  margin-left: -0.75em;
+}

@@ -1,46 +1,113 @@
 ---
 title: "Trocas e Devoluções"
-description: "Gestão do pós-venda: solicitações de troca, devolução de produtos e reembolso ao cliente"
+description: "Gestão do pós-venda: itens retornáveis, solicitação, inspeção por unidade e conclusão por troca ou reembolso"
 icon: "arrow-rotate-left"
 ---
 
-O módulo de Trocas e Devoluções cobre o ciclo de pós-venda no OMS — o que acontece depois que um pedido é concluído e o cliente precisa devolver um produto, trocar por outro ou receber um reembolso. É um fluxo separado do pedido original, com seu próprio ciclo de vida e regras de negócio.
+<div className="krz-banner"><b>Página reescrita</b> <span>A versão anterior dizia que o módulo estava em fase de especificação.</span></div>
 
-A gestão eficiente de devoluções e trocas impacta diretamente a experiência do cliente e a saúde financeira da operação. Um produto devolvido precisa ter seu estoque reabastecido na estratégia correta; um reembolso precisa ser registrado e vinculado ao pagamento original; uma troca precisa gerar um novo pedido sem criar inconsistências no inventário.
+O OMS controla o ciclo completo do pós-venda a partir da entrega: quais itens de um pedido ainda podem ser devolvidos, a abertura da solicitação, a inspeção física de cada unidade recebida e a conclusão — por troca (novo pedido de substituição) ou por reembolso.
 
-## Solicitações de Devolução
+## Itens Retornáveis
 
-Uma solicitação de devolução é aberta a partir de um pedido concluído. O operador ou o próprio sistema registra os itens que serão devolvidos, o motivo da devolução e o tipo de resolução esperada — reembolso financeiro, crédito na conta do cliente ou troca por outro produto.
+Antes de abrir uma solicitação, o operador consulta quais itens do pedido ainda têm saldo para devolução. Um item só aparece nessa lista depois que a entrega (fulfillment order) que o contém chega a **Entregue**; num pedido com split em várias entregas, só os itens das entregas já concluídas aparecem.
 
-A solicitação passa por um fluxo de aprovação antes de gerar qualquer movimentação de estoque ou financeira. Após aprovação, o retorno físico do produto é rastreado até a chegada na estratégia de destino, e o estoque é reabastecido automaticamente.
+O saldo retornável de cada item é a quantidade comprada menos o que já está comprometido em solicitações de troca ou devolução ainda ativas. Um item sem saldo não aparece na lista — um pedido totalmente devolvido responde com uma lista vazia.
 
-## Trocas
+```bash
+curl -X GET "https://oms-api.{tenant}.krzlabs.io/api/v1/orders/{orderId}/returnable-items" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-A troca combina uma devolução com a geração de um novo pedido. O OMS vincula os dois eventos — a devolução do item original e o pedido do item substituto — garantindo rastreabilidade do histórico e aplicação correta das regras comerciais. O cliente não paga novamente pelo item de mesmo valor; diferenças de preço para mais ou para menos são tratadas como cobrança adicional ou crédito, conforme a política da operação.
+Essa [listagem](/oms/api/order-returnable-items/list-the-items-of-an-order-that-are-still-returnable) não é paginada: ela devolve todos os itens ainda retornáveis do pedido, cada um com a entrega que o originou e o saldo disponível.
 
-## Reembolsos e Créditos
+## Abertura da Solicitação
 
-O OMS registra o reembolso vinculado ao pedido e ao método de pagamento original. Para operações que utilizam crédito na conta do cliente, o saldo é gerenciado no módulo de Clientes e pode ser consultado e aplicado em pedidos futuros.
+Uma solicitação é de um de dois tipos, e o tipo determina qual resolução é coerente:
 
-Em casos de cancelamento com cupom utilizado, o OMS estorna automaticamente o uso do cupom, preservando o limite configurado para uso futuro pelo cliente.
+| Tipo | Resolução permitida |
+|------|----------------------|
+| `RETURN` (devolução) | `REFUND` (reembolso) ou `STORE_CREDIT` (crédito na conta) |
+| `EXCHANGE` (troca) | `EXCHANGE` — obrigatoriamente |
+
+Cada item da solicitação aponta o item do pedido (`order_item_id`), a quantidade e o seu próprio **motivo** (`return_reason_id`). Numa troca, todo item exige um `replacement_sku` — o SKU de substituição; numa devolução, esse campo precisa vir vazio. A entrega que originou o item não é enviada: o OMS a resolve e a devolve na resposta.
 
 <Note>
-  O módulo de Trocas e Devoluções está em fase de especificação. As capacidades descritas aqui representam o escopo planejado para o go-live.
+  O motivo é do item, não da solicitação inteira. Uma solicitação com três itens pode ter três motivos diferentes.
 </Note>
+
+A solicitação também registra a origem (`originChannel`): `OPERATOR`, quando aberta manualmente, ou `EXTERNAL`, quando chega por integração. O flag `shipBeforeReceipt` habilita o modelo de cross-docking — permite vincular o pedido de troca à solicitação antes mesmo de a mercadoria original ser fisicamente recebida.
+
+```bash
+curl -X POST "https://oms-api.{tenant}.krzlabs.io/api/v1/return-requests" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "order_id": "8f2b1c40-5e7a-4a3d-9c11-2f6e8d7a1b90",
+    "type": "RETURN",
+    "requested_resolution_type": "REFUND",
+    "items": [
+      {
+        "order_item_id": "b41d9e27-3a6f-4c8e-8d52-7c1a9f0e3b64",
+        "return_reason_id": "1d7e4b92-8c3a-4f26-b5d8-9e0a3c7f1b25",
+        "quantity": 1
+      }
+    ]
+  }'
+```
+
+## Ciclo de Vida
+
+Uma solicitação percorre os seguintes estados:
+
+- **Solicitada** (`REQUESTED`) — estado inicial, aguardando decisão.
+- **Aprovada** (`APPROVED`) — decisão tomada; a partir daqui a solicitação pode receber ligação com um pedido de troca antes do recebimento (se `shipBeforeReceipt`).
+- **Rejeitada** (`REJECTED`) — decisão tomada, encerra a solicitação. Exige motivo. **Terminal.**
+- **Em Trânsito** (`IN_TRANSIT`) — mercadoria a caminho da unidade que vai inspecionar.
+- **Recebida** (`RECEIVED`) — mercadoria recebida, liberada para inspeção unidade a unidade.
+- **Concluída** (`COMPLETED`) — resolução confirmada (troca ou reembolso). **Terminal.**
+- **Cancelada** (`CANCELLED`) — encerrada sem resolução. **Terminal.**
+
+Só é possível decidir (aprovar/rejeitar) a partir de `REQUESTED`. O cancelamento é bloqueado em duas situações: se já existe um pedido de troca vinculado, ou se pelo menos uma unidade já foi inspecionada — a partir daí, a solicitação só segue para frente.
+
+## Inspeção
+
+Cada unidade recebida é [inspecionada individualmente](/oms/api/return-requests/record-the-physical-inspection-of-one-returned-unit) (`unit_index`), não a solicitação como um todo. A inspeção registra:
+
+- **Condição** (`condition`): `PERFECT`, `DAMAGED` ou `INCOMPLETE`.
+- **Destino** (`destination`): `RESTOCK` (volta ao estoque vendável), `RESTOCK_FLAGGED` (volta ao estoque, mas sinalizado), `REFURBISHMENT` (segue para recondicionamento), `DISCARD` (descarte) ou `DISPUTE` (contestação com o cliente) — sempre associado à estratégia (`destinationStrategyId`) que vai receber a unidade.
+- Anexos de evidência em JPEG, PNG, WebP ou PDF, enviados por upload direto do navegador com URL assinada de validade curta — o backend nunca recebe o arquivo, apenas assina o `PUT` e guarda a chave do objeto.
+
+<Warning>
+  A solicitação só pode ser concluída depois que **toda** unidade de **todo** item tiver uma inspeção registrada. Faltando uma unidade, a conclusão é recusada.
+</Warning>
+
+## Conclusão
+
+Uma vez que a resolução é confirmada, ela não pode mais ser alterada. Dois caminhos:
+
+- **[Troca](/oms/api/return-requests/complete-a-return-request-with-a-replacement-order)** — vincula o `replacement_order_id` (o pedido de substituição já criado) e registra o valor total da troca. Exige que todas as unidades estejam inspecionadas.
+- **[Reembolso](/oms/api/return-requests/complete-a-return-request-refunding-the-customer)** — registra o valor total a devolver e, opcionalmente, o pagamento de origem (`order_payment_id`); não há escolha de forma de pagamento parcial — o reembolso sempre publica o valor cheio da solicitação.
+
+Em caso de cancelamento com cupom aplicado no pedido original, o OMS estorna automaticamente o uso do cupom, preservando o limite configurado para uso futuro do cliente.
+
+## Motivos de Devolução
+
+Os motivos (`return-reasons`) são cadastrados por conta, com um código normalizado (maiúsculas, `_` no lugar de espaço) e um rótulo. Podem ser ativados e desativados, mas nunca removidos fisicamente. Um [endpoint de *seed*](/oms/api/return-reasons/apply-the-suggested-return-reasons) povoa cinco motivos padrão de forma idempotente: **Produto com defeito**, **Tamanho não serviu**, **Arrependimento**, **Item errado** e **Atraso na entrega**.
 
 ## Próximos Passos
 
 <CardGroup cols={2}>
   <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
-    Ciclo de vida do pedido que origina a solicitação de devolução
+    Ciclo de vida do pedido antes de chegar ao pós-venda
   </Card>
   <Card title="Máquina de Estado" icon="circle-nodes" href="/oms/maquina-de-estado">
-    Estados e transições envolvidos no fluxo de devolução
+    Estados e transições que regem pedido e entrega
   </Card>
   <Card title="Preços e Promoções" icon="tag" href="/oms/precos-promocoes-cupom">
-    Como cupons e descontos interagem com reembolsos
+    Estorno de cupom em cancelamentos
   </Card>
-  <Card title="Relatórios e Dashboards" icon="chart-line" href="/oms/relatorios-e-dashboards">
-    Visibilidade sobre volumes e motivos de devolução
+  <Card title="Referência da API" icon="book-open" href="/oms/api/return-requests/create-a-return-or-exchange-request">
+    Endpoints de return-requests, return-reasons e itens retornáveis
   </Card>
 </CardGroup>

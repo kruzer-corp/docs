@@ -1,0 +1,52 @@
+---
+title: "Clientes"
+description: "Cadastro de clientes e endereços da operação — identificação, contato e destinos de entrega"
+icon: "users"
+---
+
+<div className="krz-banner"><b>Página nova</b> <span>Não existia antes desta revisão.</span></div>
+
+O **Cliente** é quem compra. No OMS ele existe como cadastro próprio da conta, alimentado de duas formas: criado diretamente via API, para atendimentos e operações manuais, ou projetado a partir dos pedidos e do ERP, quando a identificação chega junto com a compra.
+
+## Identificação
+
+Um cliente reúne os dados de identificação e de contato:
+
+| Campo | Observação |
+|-------|------------|
+| `document` | CPF ou CNPJ. Deduplicado por conta — o mesmo documento não entra duas vezes. |
+| `type` | `PF` (pessoa física) ou `PJ` (pessoa jurídica). |
+| `external_id` | Identificador do cliente no sistema de origem, para correlação. |
+| `name`, `email`, `phone`, `birth_date` | Dados de contato, editáveis. |
+| `metadata` | Espaço livre para dados adicionais da integração. |
+
+<Note>
+  `document`, `type` e `external_id` são **imutáveis** após a criação. A atualização parcial de um cliente alcança apenas os campos de contato — nome, e-mail, telefone, data de nascimento e metadata.
+</Note>
+
+## Endereços
+
+Cada cliente tem uma lista de endereços, gerenciada como sub-recurso. Um endereço tem tipo (`SHIPPING` para entrega, `BILLING` para cobrança ou `OTHER`), a origem de onde veio (`MANUAL`, quando cadastrado na operação, ou `ERP`, quando sincronizado) e os campos de logradouro: CEP, rua, número, complemento, bairro, cidade, estado e país, com coordenadas geográficas opcionais.
+
+A gestão do endereço padrão é automática: o primeiro endereço cadastrado se torna o padrão, e promover um novo endereço a padrão rebaixa o anterior — nunca há dois padrões ao mesmo tempo.
+
+## Eventos
+
+Alterações de cliente geram eventos que alimentam as [assinaturas de webhook](/oms/webhooks) da conta. O payload é deliberadamente **sem dados pessoais**: o evento de criação carrega apenas o identificador do cliente, e o de atualização carrega o identificador mais a lista de **nomes** dos campos que mudaram — nunca os valores.
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Como o cliente é vinculado a cada pedido
+  </Card>
+  <Card title="Trocas e Devoluções" icon="arrow-rotate-left" href="/oms/trocas-e-devolucoes">
+    Reembolso e crédito na conta do cliente
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/oms/webhooks">
+    Assine os eventos de cliente sem expor dados pessoais
+  </Card>
+  <Card title="Referência da API" icon="book-open" href="/oms/api/customers/list-customers">
+    Endpoints de customers e customer-addresses
+  </Card>
+</CardGroup>

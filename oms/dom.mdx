@@ -20,13 +20,61 @@ Dado um pedido, o DOM agrega a demanda por SKU (somando os itens do pedido) e av
 
 **3. Decisão** — a estratégia escolhida recebe a entrega. Se nenhuma estratégia sozinha consegue cobrir toda a demanda, o pedido é cancelado automaticamente e o estoque eventualmente reservado é liberado.
 
-## Roadmap do DOM
+## Critério de Seleção <span className="krz-tag krz-tag--novo">novo</span>
 
-O DOM foi desenhado para evoluir para um motor de regras muito mais rico. As capacidades abaixo fazem parte do escopo planejado e **ainda não estão disponíveis** na versão atual:
+Quando mais de uma estratégia cobre 100% da demanda, o DOM escolhe entre elas por um **critério de seleção** — configurável por conta em [Configurações da Conta](/oms/configuracao-base) (`selection_criterion`), com `CLOSEST` (mais próxima) como default:
 
-- **Capacidade e restrição geográfica** — eliminar estratégias sem cobertura para o CEP de destino ou fora do SLA da modalidade escolhida.
-- **Critérios de seleção configuráveis** — escolher entre estratégias elegíveis por menor custo, maior proximidade, menor ocupação ou regras de negócio próprias, em vez da ordem fixa por código.
-- **Regras de roteamento com prioridade** — múltiplas regras IF/THEN coexistindo com ordem de precedência.
+| Critério | Status |
+|----------|--------|
+| `MOST_STOCK` | Ativo — maior estoque disponível entre as candidatas |
+| `CLOSEST` | Ativo — mais próxima da origem do pedido |
+| `LOWEST_COST` | Aceito na API, mas hoje se comporta como `MOST_STOCK` — falta modelar custo por estratégia |
+| `FASTEST` | Aceito na API, mas hoje se comporta como `MOST_STOCK` — falta modelar prazo por estratégia |
+
+## Regras de Roteamento <span className="krz-tag krz-tag--novo">novo</span>
+
+Por cima do critério de seleção, a conta pode cadastrar **[regras](/oms/api/dom-rules/list-dom-rules)** (`dom-rules`) que ajustam o conjunto de estratégias candidatas antes da escolha final. Cada regra tem uma **prioridade** (a de menor número é avaliada primeiro) e é composta por:
+
+- **Condições** — até 20 por regra, todas precisam ser verdadeiras para a regra valer. Os campos aceitos são `CHANNEL`, `CLUSTER`, `ORDER_VALUE`, `ITEM_COUNT`, `DELIVERY_TYPE` e `PRODUCT_CATEGORY`, cada um com seu conjunto de operadores (`EQUALS`, `IN`, `BETWEEN`, `GREATER_THAN`, entre outros).
+- **Ação** — o que a regra faz quando bate: `PRIORITIZE_STRATEGY` (prioriza uma lista de estratégias), `EXCLUDE_STRATEGY` (remove estratégias do conjunto), `USE_CLUSTER` (restringe a um cluster) ou `FORCE_SELECTION_CRITERION` (troca o critério de seleção só para esse pedido).
+
+O motor avalia as regras ativas em ordem de prioridade e aplica a **primeira cujas condições batem** — sem acumular efeitos de várias regras no mesmo pedido.
+
+O exemplo abaixo cria uma regra que, para pedidos acima de R$ 500 no canal informado, exclui duas estratégias do conjunto de candidatas:
+
+```bash
+curl -X POST "https://oms-api.{tenant}.krzlabs.io/api/v1/dom-rules" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Pedido alto valor fora das lojas de bairro",
+    "priority": 10,
+    "conditions": [
+      { "field": "ORDER_VALUE", "operator": "GREATER_THAN", "value": 50000 },
+      { "field": "CHANNEL", "operator": "EQUALS", "values": ["7a1e9c35-4b82-4d6f-9e03-1c5a8f2b7d94"] }
+    ],
+    "action": {
+      "type": "EXCLUDE_STRATEGY",
+      "strategy_ids": [
+        "2f8b4a61-9d37-4e52-8c70-3b1e6a9f5c28",
+        "d0c7e913-6a24-4b8f-95e1-7f2a3c8d0b46"
+      ]
+    }
+  }'
+```
+
+Valores monetários vão em centavos, então `50000` equivale a R$ 500,00.
+
+<Note>
+  Nem toda condição cadastrada já influencia o roteamento: hoje o motor só avalia `CHANNEL`, `ORDER_VALUE` e `ITEM_COUNT`. Regras que dependem de `CLUSTER`, `DELIVERY_TYPE` ou `PRODUCT_CATEGORY` são aceitas no cadastro, mas ficam de fora da decisão (aparecem como puladas, não como erro) até esses campos serem conectados ao motor.
+</Note>
+
+## Roadmap do DOM <span className="krz-tag krz-tag--upd">atualizado</span>
+
+As capacidades abaixo fazem parte do escopo planejado e **ainda não estão disponíveis**:
+
+- **Restrição geográfica por regra** — o cadastro de regra já reserva o campo (`geoRestriction`: nenhuma, mesmo estado, cobertura da transportadora), mas o motor ainda não o aplica na decisão.
+- **Custo e prazo por estratégia** — sem esse dado modelado, os critérios `LOWEST_COST` e `FASTEST` continuam caindo para `MOST_STOCK`.
 - **Prateleira infinita** — considerar estratégias sem estoque próprio quando um fornecedor ou CD pode abastecê-las no prazo.
 - **Ações de falha configuráveis** — em vez de cancelar, permitir reroteamento, split em múltiplas estratégias, cancelamento parcial de itens ou fila de intervenção manual.
 - **Simulador de roteamento** — testar, sobre um pedido hipotético, qual estratégia o DOM selecionaria com as regras atuais.

@@ -4,9 +4,11 @@ description: Introdução à API REST do OMS — autenticação, formato de resp
 icon: book-open
 ---
 
+<div className="krz-banner"><b>Referência regerada</b> <span>A spec saiu de 66 para 87 endpoints, gerada da main atual.</span></div>
+
 A API do OMS é uma API REST que expõe todo o backoffice de gestão de pedidos: cadastros base, catálogo, preços e promoções, pedidos e entregas (fulfillment orders), estratégias de fulfillment, clientes, estoque, webhooks e o controle de acesso. Todos os endpoints seguem o mesmo conjunto de convenções para autenticação, paginação, filtros e tratamento de erros.
 
-## URL Base
+## URL Base <span className="krz-tag krz-tag--upd">atualizado</span>
 
 Cada tenant é exposto em um subdomínio dedicado de `krzlabs.io`:
 
@@ -15,6 +17,20 @@ https://oms-api.{tenant}.krzlabs.io
 ```
 
 Exemplo: `https://oms-api.fastshop.krzlabs.io`. Em desenvolvimento, a API roda em `http://localhost:3000`. Os endpoints de domínio são versionados pelo prefixo `/api/v1/`.
+
+<Note>
+  Não existe uma URL pública única do OMS: cada conta tem o seu próprio host. Troque `{tenant}` pelo subdomínio da sua conta em todos os exemplos desta referência.
+</Note>
+
+### Swagger do seu ambiente <span className="krz-tag krz-tag--novo">novo</span>
+
+Cada instalação serve a própria documentação interativa, gerada do código que está no ar naquele ambiente:
+
+```
+https://oms-api.{tenant}.krzlabs.io/api/docs
+```
+
+Use essa página para **testar chamadas** contra a sua conta, com os seus dados e as suas permissões. As páginas desta seção servem para leitura e navegação por conceito; o Swagger do seu ambiente é onde a requisição é de fato executada. O contrato em JSON do mesmo ambiente fica em `/api/docs-json`, útil para diferenciar versões ou gerar um cliente.
 
 ## Autenticação
 
@@ -108,22 +124,26 @@ O endpoint `POST /api/v1/inventory` recebe lotes de posições de estoque enviad
 
 O processamento é assíncrono: a API valida o lote, publica os eventos em fila e responde `202 Accepted` com um `correlation_id` compartilhado por todos os eventos do lote. Use `GET /api/v1/inventory-movements` para auditar o histórico de movimentações.
 
-## Recursos da API
+## Recursos da API <span className="krz-tag krz-tag--upd">atualizado</span>
 
 A referência cobre os seguintes grupos de recursos:
 
 | Família                    | Recursos                                                                                     |
 | -------------------------- | -------------------------------------------------------------------------------------------- |
 | Cadastros base             | `carriers`, `channels`, `clusters`, `operators`, `payment-methods`                           |
+| Configurações da conta     | `account-configs`                                                                            |
 | Modalidades de entrega     | `delivery-modalities`, `delivery-types`, `freight-types`                                     |
 | Catálogo, preços e promoções | `products`, `product-categories`, `price-lists`, `promotions`                              |
-| Pedidos                    | `orders`, `order-payments`                                                                    |
+| Pedidos                    | `orders`, `order-payments`, `order-returnable-items`                                          |
+| Pós-venda                  | `return-requests`, `return-reasons`                                                          |
 | Fulfillment                | `fulfillment-orders`, `fulfillment-order-shipments`, `fulfillment-order-tracking-events`, `fulfillment-order-shipment-tracking-events` |
 | Estratégias de fulfillment | `strategies`, `strategy-carriers`, `strategy-channels`, `strategy-operators`, `strategy-price-lists` |
+| Roteamento                 | `dom-rules`                                                                                  |
 | Máquina de estado          | `state-machines`, `statuses`                                                                 |
 | Clientes                   | `customers`, `customer-addresses`                                                            |
 | Estoque                    | `inventory`, `inventory-movements`                                                           |
 | Webhooks                   | `webhook-subscriptions`                                                                       |
+| Auditoria                  | `audit-events`                                                                               |
 | Acesso                     | `permissions`                                                                                |
 
 ## Próximos Passos

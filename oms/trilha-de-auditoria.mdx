@@ -1,0 +1,59 @@
+---
+title: "Trilha de Auditoria"
+description: "Registro de quem fez o quê na operação — ação, ator, recurso afetado e resultado, consultável por período"
+icon: "clipboard-check"
+---
+
+<div className="krz-banner"><b>Página nova</b> <span>Não existia antes desta revisão.</span></div>
+
+A **Trilha de Auditoria** responde a pergunta "quem fez isso, e quando?". Toda requisição à API do OMS é registrada com o ator que a executou, a ação pretendida, o recurso afetado e o resultado — inclusive as consultas de leitura e inclusive as tentativas recusadas por falta de permissão.
+
+## O que cada evento registra
+
+- **Ator** — o usuário ou a conta de serviço que fez a chamada, extraído do token.
+- **Ação** — derivada do módulo de permissão e da permissão exigida pelo endpoint, não de um rótulo digitado à mão.
+- **Recurso afetado** — tipo e identificador do alvo, quando a ação tem um alvo definido.
+- **Resultado** — se a operação foi concluída ou recusada, com o código de status correspondente.
+- **Momento** — `occurred_at`, usado como ordenação padrão (mais recentes primeiro).
+
+## Consulta
+
+A listagem é paginada e aceita filtros por ação (`action`), ator (`actorId`), resultado (`outcome`), tipo e identificador do alvo (`targetType`, `targetId`), se a ação foi somente leitura (`readOnly`) e um intervalo de datas (`occurredFrom`, `occurredTo`).
+
+```bash
+curl -G "https://oms-api.{tenant}.krzlabs.io/api/v1/audit-events" \
+  -H "Authorization: Bearer $TOKEN" \
+  --data-urlencode "targetType=order" \
+  --data-urlencode "readOnly=false" \
+  --data-urlencode "occurredFrom=2026-09-01T00:00:00Z" \
+  --data-urlencode "limit=50"
+```
+
+## Privacidade por desenho
+
+A trilha é deliberadamente pobre em conteúdo sensível. Ela **não** guarda corpo de requisição, **não** guarda a query string bruta e **não** guarda identificador de sessão em texto claro. Dos filtros usados numa consulta, a trilha registra apenas os **nomes** dos parâmetros, nunca os valores — responde "filtrou por documento" sem armazenar o documento.
+
+## Retenção assimétrica
+
+Ações que alteram dados são guardadas por muito mais tempo do que consultas de leitura. Por isso toda resposta traz um bloco `meta.retention` com o piso da janela disponível e um indicador `truncated`.
+
+<Warning>
+  Quando o período consultado começa antes do piso de retenção, a resposta vem com `truncated: true`. Uma página vazia com esse indicador significa **que o histórico não está mais disponível**, não que nada aconteceu naquele período. É uma distinção importante em investigação.
+</Warning>
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Identidade e Acesso" icon="user-shield" href="/plataforma-kruzer/iam-permissoes">
+    Papéis e permissões que definem as ações auditadas
+  </Card>
+  <Card title="Pedidos" icon="bag-shopping" href="/oms/pedidos">
+    Timeline de transições no detalhe de cada pedido
+  </Card>
+  <Card title="Máquina de Estado" icon="circle-nodes" href="/oms/maquina-de-estado">
+    Histórico imutável de transições de status
+  </Card>
+  <Card title="Referência da API" icon="book-open" href="/oms/api/audit-events/list-user-action-audit-events">
+    Endpoint de audit-events e seus filtros
+  </Card>
+</CardGroup>
