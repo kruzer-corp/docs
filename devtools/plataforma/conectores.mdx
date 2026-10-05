@@ -20,6 +20,9 @@ A plataforma suporta múltiplos tipos de conectores, abrangendo APIs REST e banc
   <Card title="MySQL" icon="database">
     Banco relacional com queries dinâmicas
   </Card>
+  <Card title="PostgreSQL" icon="database" href="/devtools/data-sources/postgres">
+    Bind real de parâmetros, transações e SSL configurável
+  </Card>
   <Card title="SQL Server" icon="database">
     Suporte a stored procedures
   </Card>
@@ -78,7 +81,7 @@ Permite a configuração completa de conexões RESTful:
 
 ## Bancos de Dados Relacionais
 
-### MySQL, SQL Server, Oracle
+### MySQL, PostgreSQL, SQL Server, Oracle
 
 Permite configuração de conexões utilizando drivers nativos:
 
@@ -95,6 +98,10 @@ Permite configuração de conexões utilizando drivers nativos:
 - Stored procedures (SQL Server, Oracle)
 - Transações
 - Connection pooling
+
+<Note>
+  No **PostgreSQL**, a credencial tem ainda o **SSL mode** (padrão `require`) e um **Schema** opcional, que define o `search_path` da sessão. Detalhes na página do [PostgreSQL](/devtools/data-sources/postgres).
+</Note>
 
 ---
 
@@ -172,10 +179,10 @@ export default async function run() {
   <Card title="MySQL (IDK)" icon="database" href="/devtools/data-sources/mysql">
     Documentação completa do MySqlDataSource
   </Card>
+  <Card title="PostgreSQL (IDK)" icon="database" href="/devtools/data-sources/postgres">
+    Documentação completa do PostgresDataSource
+  </Card>
   <Card title="REST API (IDK)" icon="globe" href="/devtools/integracoes/rest-api">
     Documentação completa do RestDataSource
-  </Card>
-  <Card title="MongoDB (IDK)" icon="leaf" href="/devtools/data-sources/mongodb">
-    Documentação completa do MongoDbDataSource
   </Card>
 </CardGroup>
