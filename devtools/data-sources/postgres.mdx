@@ -1,0 +1,449 @@
+---
+title: "PostgreSQL"
+description: "Conecte-se a bancos PostgreSQL com o PostgresDataSource"
+icon: "database"
+---
+
+O `PostgresDataSource` permite executar queries, transações e operações em lote em bancos PostgreSQL. Funciona em qualquer automação da plataforma: Triggers, Consumers e endpoints do API Gateway.
+
+<Note>
+  Disponível a partir da versão **1.4.0** do `@kruzer/idk`.
+</Note>
+
+## Configuração
+
+Antes de usar no código, crie o conector na plataforma:
+
+<Steps>
+  <Step title="Criar o conector">
+    Em **Conectores**, crie um conector de banco de dados e selecione o tipo **PostgreSQL**.
+  </Step>
+  <Step title="Cadastrar a credencial">
+    Para cada tenant, informe os dados de conexão:
+
+    | Campo | Obrigatório | Descrição |
+    |-------|-------------|-----------|
+    | Host | Sim | Endereço do servidor |
+    | Porta | Não | Padrão `5432` |
+    | Database | Sim | Nome do banco |
+    | Usuário / Senha | Sim | Credenciais de acesso |
+    | SSL mode | Não | `require` (padrão), `disable`, `verify-ca` ou `verify-full` |
+    | Schema | Não | Um ou mais schemas separados por vírgula. Viram o `search_path` da sessão |
+  </Step>
+  <Step title="Cadastrar as queries (opcional)">
+    Queries cadastradas no conector podem ser testadas com o botão **Executar** e chamadas no código pelo alias com `execute()`.
+  </Step>
+</Steps>
+
+<Tip>
+  Rodando automações localmente? Se o seu CLI foi configurado antes do lançamento do conector PostgreSQL, execute `krz configure` de novo para que o ambiente local passe a enxergar o conector.
+</Tip>
+
+## Importação
+
+```typescript
+import { PostgresDataSource } from '@kruzer/idk';
+```
+
+## Construtor
+
+```typescript
+const pg = new PostgresDataSource(name: string, tenant?: string);
+```
+
+<ResponseField name="name" type="string" required>
+  Nome do conector configurado na plataforma
+</ResponseField>
+
+<ResponseField name="tenant" type="string">
+  Identificador do tenant (opcional). Quando informado, tem prioridade sobre o tenant da execução
+</ResponseField>
+
+## Passagem de parâmetros
+
+Os valores são sempre enviados ao banco por **bind** — nunca são concatenados no SQL. Há duas formas, que não podem ser combinadas na mesma query:
+
+| Forma | No SQL | Na opção |
+|-------|--------|----------|
+| Nomeada | `WHERE id = :id` | `variables: { id: 1 }` |
+| Posicional | `WHERE id = $1` | `params: [1]` |
+
+- Um mesmo nome pode aparecer várias vezes no SQL.
+- Variáveis enviadas que não aparecem no SQL são ignoradas.
+- Uma variável usada no SQL sem valor gera erro. `null` é um valor válido.
+- Casts (`::int`), strings, comentários e corpos `$$ ... $$` não são confundidos com parâmetros.
+
+## Métodos
+
+### query()
+
+Executa uma query SQL diretamente.
+
+```typescript
+query<T>(query: string, options?: PostgresOptions): Promise<PostgresQueryResponse<T>>
+```
+
+<CodeGroup>
+```typescript Query Simples
+const pg = new PostgresDataSource('meu-postgres');
+
+const resultado = await pg.query('SELECT id, nome FROM clientes WHERE ativo = true');
+// resultado.data     -> linhas retornadas
+// resultado.rowCount -> quantidade de linhas
+```
+
+```typescript Variáveis Nomeadas
+const pg = new PostgresDataSource('meu-postgres');
+
+const { data: pedidos } = await pg.query(
+  'SELECT * FROM pedidos WHERE status = :status AND criado_em >= :desde',
+  {
+    variables: {
+      status: 'pendente',
+      desde: '2026-01-01'
+    }
+  }
+);
+```
+
+```typescript Parâmetros Posicionais
+const pg = new PostgresDataSource('meu-postgres');
+
+const { data } = await pg.query(
+  'SELECT * FROM pedidos WHERE cliente_id = $1 AND total > $2',
+  { params: [42, 100] }
+);
+```
+
+```typescript Tipagem e Timeout
+interface Cliente {
+  id: number;
+  nome: string;
+}
+
+const pg = new PostgresDataSource('meu-postgres');
+
+const { data } = await pg.query<Cliente>(
+  'SELECT id, nome FROM clientes WHERE uf = :uf',
+  {
+    variables: { uf: 'SP' },
+    timeoutMs: 120000 // até 5 minutos
+  }
+);
+```
+</CodeGroup>
+
+### execute()
+
+Executa uma query cadastrada no conector, pelo seu alias.
+
+```typescript
+execute<T>(alias: string, options?: PostgresOptions): Promise<PostgresQueryResponse<T>>
+```
+
+```typescript
+const pg = new PostgresDataSource('meu-postgres');
+
+const { data: pedidos } = await pg.execute('pedidos-por-cliente', {
+  variables: { cliente: 42 }
+});
+```
+
+### transaction()
+
+Executa vários statements em uma única transação. Se qualquer um falhar, **todos são desfeitos**.
+
+```typescript
+transaction(
+  statements: PostgresStatement[],
+  options?: PostgresTransactionOptions
+): Promise<PostgresTransactionResponse>
+```
+
+Cada statement pode ser uma query (`query`) ou uma query cadastrada (`alias`), com suas próprias `variables` ou `params`.
+
+```typescript
+const pg = new PostgresDataSource('meu-postgres');
+
+const resultado = await pg.transaction(
+  [
+    {
+      query: 'INSERT INTO pedidos (id, total) VALUES (:id, :total)',
+      variables: { id: 1001, total: '259.90' }
+    },
+    {
+      alias: 'baixa-estoque',
+      variables: { pedido: 1001 }
+    }
+  ],
+  { isolationLevel: 'REPEATABLE READ' }
+);
+
+// resultado.data -> uma resposta por statement, na mesma ordem
+```
+
+<Note>
+  Em caso de erro, a resposta indica qual statement falhou em `statementIndex`. Procedures que fazem `COMMIT` internamente não podem rodar dentro de `transaction()` — use `query()` para elas.
+</Note>
+
+### multiInsert()
+
+Executa um lote de comandos SQL prontos, em blocos.
+
+```typescript
+multiInsert(requestBody: PostgresMultiInsert): Promise<PostgresMultiCommandResponse>
+```
+
+```typescript
+import { PostgresDataSource, PostgresMultiInsert } from '@kruzer/idk';
+
+const pg = new PostgresDataSource('meu-postgres');
+
+const lote: PostgresMultiInsert = {
+  credential: {
+    host: 'db.exemplo.com',
+    database: 'erp',
+    user: 'usuario',
+    password: 'senha'
+  },
+  chunkSize: 200,
+  showExecutionTime: true,
+  commands: [
+    { commandId: 'produto-1', command: "INSERT INTO produtos (sku, nome) VALUES ('A1', 'Produto A')" },
+    { commandId: 'produto-2', command: "INSERT INTO produtos (sku, nome) VALUES ('B2', 'Produto B')" }
+  ]
+};
+
+const resultado = await pg.multiInsert(lote);
+// resultado.results -> comandos executados com sucesso
+// resultado.errors  -> comandos com erro, identificados pelo commandId
+```
+
+<Warning>
+  Os comandos do `multiInsert()` são executados como texto, **sem bind**. Nunca monte esses comandos com dados vindos de fora sem tratá-los. Para inserir dados externos, prefira `query()` ou `transaction()` com `variables`.
+</Warning>
+
+Quando um comando do bloco falha, os demais comandos do bloco são reprocessados individualmente: os válidos são gravados uma única vez e cada falha aparece em `errors` com o seu `commandId`.
+
+### command()
+
+Executa queries em uma ou mais credenciais informadas diretamente.
+
+```typescript
+command(requestBody: PostgresCommand[]): Promise<PostgresMultiCommandResponse>
+```
+
+```typescript
+import { PostgresDataSource, PostgresCredential } from '@kruzer/idk';
+
+const pg = new PostgresDataSource('meu-postgres');
+
+const credential: PostgresCredential = {
+  host: 'db.exemplo.com',
+  database: 'erp',
+  user: 'usuario',
+  password: 'senha'
+};
+
+const resultado = await pg.command([
+  { credential, query: 'SELECT count(*)::int AS total FROM pedidos' },
+  { credential, query: 'SELECT now() AS agora' }
+]);
+```
+
+### ping()
+
+Verifica a conectividade com o banco e retorna a versão do servidor.
+
+```typescript
+ping(requestBody: PostgresPing): Promise<PostgresPingResponse>
+```
+
+```typescript
+const pg = new PostgresDataSource('meu-postgres');
+
+const { status, serverVersion, error } = await pg.ping({
+  credential: {
+    host: 'db.exemplo.com',
+    database: 'erp',
+    user: 'usuario',
+    password: 'senha'
+  }
+});
+
+console.log(status ? `Conectado ao PostgreSQL ${serverVersion}` : `Falha: ${error}`);
+```
+
+## Tipos de dados retornados
+
+Alguns tipos do PostgreSQL voltam em um formato diferente do esperado, para não perder precisão nem deslocar datas:
+
+| Tipo no banco | Retorno | Observação |
+|---------------|---------|------------|
+| `bigint` / `int8`, `numeric`, `money` | `string` | `count(*)` é `bigint` e volta como `"3"`. Use `count(*)::int` para receber número |
+| `date`, `timestamp` (sem fuso) | `string` | Exatamente como está no banco, ex.: `"2026-09-28"` |
+| `timestamptz` | `string` ISO | Em UTC |
+| `json` / `jsonb` | objeto | Já convertido |
+| `bytea` | `string` | Em base64 |
+
+## SSL
+
+| SSL mode | Comportamento |
+|----------|---------------|
+| `require` (padrão) | Conexão criptografada, sem validar o certificado. Atende RDS, Azure e Supabase |
+| `disable` | Sem criptografia |
+| `verify-ca` | Criptografada, validando a cadeia de certificados |
+| `verify-full` | Criptografada, validando a cadeia e o hostname |
+
+Se o servidor não aceitar SSL, use `disable`. Se o servidor exigir SSL, use `require` ou superior. A mensagem de erro indica qual dos dois casos ocorreu.
+
+## Limites
+
+| Limite | Valor |
+|--------|-------|
+| Timeout padrão por query | 60 segundos |
+| Timeout máximo (`timeoutMs`) | 5 minutos |
+| Linhas por resposta | 50.000 — acima disso, pagine a consulta com `LIMIT` / `OFFSET` |
+| Statements por transação | 1.000 |
+| Tempo de espera por conexão | 5 segundos |
+
+## Tratamento de erros
+
+As falhas chegam como exceção. O corpo da resposta, com a mensagem e o código do PostgreSQL (SQLSTATE), fica em `error.response.data`:
+
+```typescript
+import { PostgresDataSource } from '@kruzer/idk';
+
+const pg = new PostgresDataSource('meu-postgres');
+
+try {
+  await pg.query('INSERT INTO clientes (email) VALUES (:email)', {
+    variables: { email: 'cliente@exemplo.com' }
+  });
+} catch (error) {
+  const status = error.response?.status;
+  const detalhe = error.response?.data;
+
+  if (detalhe?.error?.code === '23505') {
+    console.error('Registro duplicado:', detalhe.error.constraint);
+  } else {
+    console.error(`Erro PostgreSQL (${status}):`, detalhe?.message ?? error.message);
+  }
+  throw error;
+}
+```
+
+| Status | Quando ocorre |
+|--------|---------------|
+| 400 | Dados inválidos: variável sem valor, `params` junto com `variables`, credencial incompleta |
+| 413 | Resultado acima de 50.000 linhas |
+| 422 | Erro no SQL — o código do PostgreSQL vem em `error.code` |
+| 502 | Falha de conexão, SSL, autenticação ou banco inexistente |
+| 503 | Banco sem conexões disponíveis ou em desligamento |
+| 504 | A query ultrapassou o timeout |
+
+## Boas práticas e cuidados
+
+<AccordionGroup>
+  <Accordion title="Vários statements no mesmo texto">
+    `"SELECT 1; SELECT 2"` funciona e retorna os dados do último statement, com um resumo de cada um em `statements`. Esse formato só é aceito **sem parâmetros** — para vários statements com valores, use `transaction()`.
+  </Accordion>
+
+  <Accordion title="Fatias de array com nomes">
+    `:nome` no SQL é sempre interpretado como parâmetro. Em fatias de array com nomes, escreva com espaço (`arr[inicio : fim]`) para que `:fim` não vire parâmetro. Fatias numéricas (`arr[1:2]`) não são afetadas.
+  </Accordion>
+
+  <Accordion title="Poolers (pgBouncer, Supavisor)">
+    Prefira a conexão direta ao banco (normalmente a porta `5432`). Poolers em modo *transaction* — como a porta `6543` do Supabase — podem recusar a conexão com o erro `unsupported startup parameter`. Nesses casos, se precisar de `timeoutMs`, use `transaction()`.
+  </Accordion>
+
+  <Accordion title="Muitas automações em paralelo">
+    Cada credencial usa um número limitado de conexões simultâneas. Muitas execuções em paralelo sobre o mesmo banco podem esperar por uma conexão livre e falhar com 502 por tempo esgotado. Distribua a carga ou fale com o time Kruzer.
+  </Accordion>
+</AccordionGroup>
+
+## Interfaces
+
+```typescript
+interface PostgresCredential {
+  host: string;
+  port?: number;            // padrão 5432
+  database: string;
+  user: string;
+  password: string;
+  sslmode?: 'disable' | 'require' | 'verify-ca' | 'verify-full'; // padrão 'require'
+  schema?: string;          // um ou mais, separados por vírgula
+}
+
+interface PostgresOptions {
+  variables?: Record<string, unknown>; // bind nomeado (:nome)
+  params?: unknown[];                  // bind posicional ($1, $2...)
+  timeoutMs?: number;                  // timeout desta query, até 5 minutos
+  rowMode?: 'object' | 'array';        // 'array' devolve cada linha como array
+}
+
+interface PostgresQueryResponse<T> {
+  data: T[];
+  rowCount: number | null;
+  command: string;
+  fields?: { name: string; dataTypeID: number }[];
+  statements?: { command: string; rowCount: number | null }[];
+}
+
+type PostgresStatement =
+  | { query: string; variables?: Record<string, unknown>; params?: unknown[] }
+  | { alias: string; variables?: Record<string, unknown>; params?: unknown[] };
+
+interface PostgresTransactionOptions {
+  isolationLevel?: 'READ COMMITTED' | 'REPEATABLE READ' | 'SERIALIZABLE';
+  timeoutMs?: number;
+}
+
+interface PostgresTransactionResponse {
+  data: PostgresQueryResponse[];
+}
+
+interface PostgresMultiInsert {
+  credential: PostgresCredential;
+  commands: string[] | { commandId: string; command: string }[];
+  chunkSize?: number;        // padrão 200
+  showExecutionTime?: boolean;
+}
+
+interface PostgresCommand {
+  credential: PostgresCredential;
+  query: string;
+}
+
+interface PostgresMultiCommandResponse {
+  results: any[];
+  errors: any[];
+}
+
+interface PostgresPing {
+  credential: PostgresCredential;
+}
+
+interface PostgresPingResponse {
+  status: boolean;
+  serverVersion?: string;
+  error?: string;
+}
+```
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Conectores" icon="plug" href="/devtools/plataforma/conectores">
+    Configure conectores e credenciais na plataforma
+  </Card>
+  <Card title="Consumers" icon="inbox" href="/devtools/plataforma/consumers">
+    Use o PostgreSQL em automações disparadas por filas
+  </Card>
+  <Card title="Tratamento de Erros" icon="triangle-exclamation" href="/devtools/conceitos/tratamento-erros">
+    Padrões de tratamento de erros nos data sources
+  </Card>
+  <Card title="MySQL" icon="database" href="/devtools/data-sources/mysql">
+    Documentação do MySqlDataSource
+  </Card>
+</CardGroup>

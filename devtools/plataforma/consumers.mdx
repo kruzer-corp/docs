@@ -86,6 +86,52 @@ Independente do broker escolhido, todo Consumer compartilha os mesmos campos bas
 
 ---
 
+## Escrevendo a automação
+
+O arquivo de automação exporta uma função que recebe a mensagem e **deve retornar um booleano**: `true` quando o processamento deu certo, `false` quando falhou. Qualquer outro retorno, ou uma exceção, é registrado como erro da execução nos logs.
+
+A mensagem recebida traz o conteúdo e os metadados do broker, além do `tenant` do Consumer:
+
+| Broker | Conteúdo da mensagem | Outros campos |
+|--------|----------------------|---------------|
+| Apache Kafka | `value` (texto) | `topic`, `key`, `partition`, `offset`, `timestamp` |
+| IBM MQ | `content` (texto) | `queue`, `queueManager`, `correlationId`, `messageId` |
+
+### Gravando mensagens em um banco de dados
+
+Os data sources do IDK funcionam dentro do Consumer como em qualquer automação, e usam a credencial do conector cadastrada para o tenant do Consumer. Exemplo de um Consumer Kafka que grava cada pedido recebido no [PostgreSQL](/devtools/data-sources/postgres):
+
+```typescript
+import { PostgresDataSource } from '@kruzer/idk';
+
+const pg = new PostgresDataSource('meu-postgres');
+
+export default async function run(message) {
+  const pedido = JSON.parse(message.value);
+
+  await pg.query(
+    `INSERT INTO pedidos (id, cliente_id, total)
+     VALUES (:id, :cliente, :total)
+     ON CONFLICT (id) DO UPDATE SET total = EXCLUDED.total`,
+    {
+      variables: {
+        id: pedido.id,
+        cliente: pedido.clienteId,
+        total: pedido.total
+      }
+    }
+  );
+
+  return true;
+}
+```
+
+<Tip>
+  Mensagens podem ser entregues mais de uma vez. Prefira gravações idempotentes, como o `ON CONFLICT ... DO UPDATE` do exemplo, para que reprocessar uma mensagem não duplique dados.
+</Tip>
+
+---
+
 ## Próximos Passos
 
 <CardGroup cols={2}>
@@ -95,8 +141,8 @@ Independente do broker escolhido, todo Consumer compartilha os mesmos campos bas
   <Card title="Repositórios" icon="code-branch" href="/devtools/plataforma/repositories">
     Gerencie os repositórios com seus arquivos de automação
   </Card>
-  <Card title="Tenants" icon="users" href="/devtools/plataforma/tenants">
-    Configure os tenants vinculados às suas execuções
+  <Card title="PostgreSQL (IDK)" icon="database" href="/devtools/data-sources/postgres">
+    Grave e consulte dados em bancos PostgreSQL
   </Card>
   <Card title="Logger (IDK)" icon="file-lines" href="/devtools/utilitarios/logger">
     Saiba como usar o KrzLogger nas suas automações

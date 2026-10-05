@@ -85,6 +85,7 @@
                     "group": "Bancos de Dados",
                     "pages": [
                       "devtools/data-sources/mysql",
+                      "devtools/data-sources/postgres",
                       "devtools/data-sources/mssql",
                       "devtools/data-sources/oracle",
                       "devtools/data-sources/mongodb"
