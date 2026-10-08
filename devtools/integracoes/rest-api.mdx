@@ -101,6 +101,22 @@ const resultado = await rest.request('endpoint-protegido', {
 });
 ```
 
+### Credenciais sem passar pelo código
+
+Use `{{secret:NOME}}` em qualquer texto da chamada para enviar um valor cadastrado em [Secrets e Variáveis](/devtools/plataforma/secrets-e-variaveis). Valores sensíveis só podem ir no corpo ou em cabeçalho. O conector troca a referência pelo valor no servidor, e o valor não passa pelo código da automação.
+
+```typescript
+const rest = new RestDataSource('api-externa');
+
+const resultado = await rest.request('endpoint-protegido', {
+  headers: {
+    Authorization: 'Bearer {{secret:API_TOKEN}}'
+  }
+});
+```
+
+Regras, limites e erros em [Secrets e Variáveis no Código](/devtools/utilitarios/secrets-e-variaveis).
+
 ### Preservar Authorization Header
 
 ```typescript
