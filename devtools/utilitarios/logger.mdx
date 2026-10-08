@@ -119,6 +119,15 @@ logger.debug('Iniciando processamento', {
 });
 ```
 
+## Redação de valores sensíveis
+
+Valores sensíveis lidos com `Secrets.get` saem como `[REDACTED]` no `KrzLogger` e no `logger` exportado pelo idk, em qualquer parte da mensagem. `console.log` não passa pela redação. Veja [Secrets e Variáveis no Código](/devtools/utilitarios/secrets-e-variaveis).
+
+```typescript
+const chaveHmac = await Secrets.get('CHAVE_HMAC');
+logger.info('configuração', { chaveHmac }); // {"chaveHmac":"[REDACTED]"}
+```
+
 ## Formato de Saída
 
 Os logs são emitidos em formato JSON estruturado:
