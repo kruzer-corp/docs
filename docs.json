@@ -54,6 +54,7 @@
               "devtools/plataforma/repositories",
               "devtools/plataforma/conectores",
               "devtools/plataforma/credentials",
+              "devtools/plataforma/secrets-e-variaveis",
               "devtools/plataforma/triggers",
               "devtools/plataforma/consumers",
               {
@@ -101,7 +102,8 @@
                   {
                     "group": "Utilitários",
                     "pages": [
-                      "devtools/utilitarios/logger"
+                      "devtools/utilitarios/logger",
+                      "devtools/utilitarios/secrets-e-variaveis"
                     ]
                   },
                   {
