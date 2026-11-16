@@ -18869,6 +18869,15 @@
         "parameters": [
           {
             "required": false,
+            "description": "Exact SKU match, case-sensitive. Returns at most one product, unlike `q`, which matches a substring of sku, name or any ean — primary or alternate.",
+            "name": "sku",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
             "name": "active",
             "in": "query",
             "schema": {
@@ -18897,22 +18906,6 @@
           },
           {
             "required": false,
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "required": false,
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "required": false,
             "name": "sortBy",
             "in": "query",
             "schema": {
@@ -18925,6 +18918,22 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "required": false,
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -19430,6 +19439,189 @@
           }
         ],
         "summary": "Fetch product",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/api/v1/products/{id}/metadata": {
+      "patch": {
+        "description": "Merges the sent keys into the current metadata of an existing product, at the first level: a sent key replaces the current one and a nested value goes in whole, without deep merge; a key sent as null is removed; a key not sent stays as it is. The merge happens in a single database write, so concurrent patches on different keys keep both. An empty metadata ({}) writes nothing and answers the current metadata. Every other field of the product is untouched and no catalog event is published. accountCode and the actor come from the JWT.",
+        "operationId": "ProductsController_updateMetadata_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product identifier (UUID).",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "01920000-0000-7000-8000-000000000000"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductMetadataUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Product metadata merged.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductMetadataUpdateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload: metadata key missing, null, or not an object (array, string, number); or id is not a UUID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "VALIDATION_ERROR": {
+                    "summary": "One or more fields failed validation",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "invalid request payload",
+                        "details": [
+                          {
+                            "field": "code",
+                            "reason": "code must match /^[A-Z0-9_]{2,50}$/"
+                          },
+                          {
+                            "field": "name",
+                            "reason": "name must be at least 3 characters long"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "VALIDATION_ERROR__1": {
+                    "summary": "Path parameter is not a UUID",
+                    "value": {
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "invalid request payload",
+                        "details": [
+                          {
+                            "field": "id",
+                            "reason": "id must be a valid UUID"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is missing, malformed, expired, or refers to a session that is no longer active.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UNAUTHORIZED": {
+                    "summary": "Authentication required or invalid",
+                    "value": {
+                      "error": {
+                        "code": "UNAUTHORIZED",
+                        "message": "Unauthorized"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The caller is authenticated but lacks the required permission for this action.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "FORBIDDEN": {
+                    "summary": "Caller lacks the required permission",
+                    "value": {
+                      "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Forbidden"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found in the caller account.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "PRODUCT_NOT_FOUND": {
+                    "summary": "Product not found",
+                    "value": {
+                      "error": {
+                        "code": "PRODUCT_NOT_FOUND",
+                        "message": "Product 01920000-0000-7000-8000-000000000000 not found"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error. The response body never leaks internal details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "summary": "Unhandled server-side failure",
+                    "value": {
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "Internal server error"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Merge keys into a product metadata",
         "tags": [
           "products"
         ]
@@ -34671,6 +34863,46 @@
             "nullable": true,
             "additionalProperties": true
           },
+          "weight_kg": {
+            "type": "number",
+            "nullable": true,
+            "example": 1.25
+          },
+          "length_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 30
+          },
+          "width_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 20
+          },
+          "height_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 10
+          },
+          "refrigerated": {
+            "type": "boolean",
+            "description": "Product requires refrigeration."
+          },
+          "expiration_date": {
+            "type": "string",
+            "nullable": true,
+            "example": "2027-03-31",
+            "description": "Expiration date (YYYY-MM-DD)."
+          },
+          "lot": {
+            "type": "string",
+            "nullable": true,
+            "example": "L2026-10"
+          },
+          "image_url": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cdn.example.com/sku-1.png"
+          },
           "id": {
             "type": "string"
           },
@@ -34687,6 +34919,12 @@
           "ean": {
             "type": "string"
           },
+          "alternate_eans": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "active": {
             "type": "boolean"
           },
@@ -34699,11 +34937,20 @@
         },
         "required": [
           "metadata",
+          "weight_kg",
+          "length_cm",
+          "width_cm",
+          "height_cm",
+          "refrigerated",
+          "expiration_date",
+          "lot",
+          "image_url",
           "id",
           "sku",
           "name",
           "description",
           "ean",
+          "alternate_eans",
           "active",
           "created_at",
           "updated_at"
@@ -34730,6 +34977,75 @@
       "ProductIngest": {
         "type": "object",
         "properties": {
+          "alternate_eans": {
+            "description": "Other barcodes for the same item (GTIN-13 × DUN-14, packaging or supplier variants). Every ingestion replaces the whole list; omit it or send an empty array to clear.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "Free-form metadata. Replaces the whole stored object; null clears it. When omitted on an existing product, the stored metadata is kept. To change some keys without sending the rest, use `PATCH /products/{id}/metadata`."
+          },
+          "weight_kg": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "example": 1.25,
+            "description": "Product weight in kg, > 0. Every ingestion replaces it; omit it or send null to clear."
+          },
+          "length_cm": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "example": 30,
+            "description": "Product length in cm, > 0. Every ingestion replaces it; omit it or send null to clear."
+          },
+          "width_cm": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "example": 20,
+            "description": "Product width in cm, > 0. Every ingestion replaces it; omit it or send null to clear."
+          },
+          "height_cm": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "example": 10,
+            "description": "Product height in cm, > 0. Every ingestion replaces it; omit it or send null to clear."
+          },
+          "refrigerated": {
+            "type": "boolean",
+            "default": false,
+            "description": "Product requires refrigeration. Every ingestion replaces it; omit it to store false."
+          },
+          "expiration_date": {
+            "type": "string",
+            "nullable": true,
+            "example": "2027-03-31",
+            "description": "Expiration date (YYYY-MM-DD). Every ingestion replaces it; omit it or send null to clear."
+          },
+          "lot": {
+            "type": "string",
+            "nullable": true,
+            "example": "L2026-10",
+            "description": "Lot. Every ingestion replaces it; omit it, send null or blank to clear."
+          },
+          "image_url": {
+            "type": "string",
+            "nullable": true,
+            "format": "uri",
+            "example": "https://cdn.example.com/sku-1.png",
+            "description": "Product image URL (http or https). Every ingestion replaces it; omit it or send null to clear."
+          },
           "sku": {
             "type": "string"
           },
@@ -34748,10 +35064,6 @@
           },
           "active": {
             "type": "boolean"
-          },
-          "metadata": {
-            "type": "object",
-            "nullable": true
           }
         },
         "required": [
@@ -34764,10 +35076,11 @@
         "type": "object",
         "properties": {
           "data": {
-            "type": "object"
+            "$ref": "#/components/schemas/ProductIngestData"
           },
           "created": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "true when this call created the product, false when it updated an existing one."
           }
         },
         "required": [
@@ -34778,6 +35091,46 @@
       "ProductFindResponse": {
         "type": "object",
         "properties": {
+          "weight_kg": {
+            "type": "number",
+            "nullable": true,
+            "example": 1.25
+          },
+          "length_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 30
+          },
+          "width_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 20
+          },
+          "height_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 10
+          },
+          "refrigerated": {
+            "type": "boolean",
+            "description": "Product requires refrigeration."
+          },
+          "expiration_date": {
+            "type": "string",
+            "nullable": true,
+            "example": "2027-03-31",
+            "description": "Expiration date (YYYY-MM-DD)."
+          },
+          "lot": {
+            "type": "string",
+            "nullable": true,
+            "example": "L2026-10"
+          },
+          "image_url": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cdn.example.com/sku-1.png"
+          },
           "id": {
             "type": "string"
           },
@@ -34794,6 +35147,12 @@
           "ean": {
             "type": "string"
           },
+          "alternate_eans": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "active": {
             "type": "boolean"
           },
@@ -34809,11 +35168,20 @@
           }
         },
         "required": [
+          "weight_kg",
+          "length_cm",
+          "width_cm",
+          "height_cm",
+          "refrigerated",
+          "expiration_date",
+          "lot",
+          "image_url",
           "id",
           "sku",
           "name",
           "description",
           "ean",
+          "alternate_eans",
           "active",
           "metadata",
           "created_at",
@@ -37773,6 +38141,150 @@
           "url",
           "event_types",
           "disabled_at",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ProductMetadataUpdateResponse": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true,
+            "description": "O `metadata` inteiro do produto depois do merge."
+          },
+          "id": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "metadata",
+          "id",
+          "sku",
+          "updated_at"
+        ]
+      },
+      "ProductMetadataUpdate": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Chaves a mesclar no `metadata` atual do produto, no primeiro nível. A chave enviada substitui a atual e um valor aninhado entra inteiro, sem merge profundo; a chave enviada com `null` é removida; a chave não enviada fica como está. `{}` não grava nada.",
+            "example": {
+              "ncm": "62093000",
+              "origem_prod": "1"
+            }
+          }
+        },
+        "required": [
+          "metadata"
+        ]
+      },
+      "ProductIngestData": {
+        "type": "object",
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          },
+          "weight_kg": {
+            "type": "number",
+            "nullable": true,
+            "example": 1.25
+          },
+          "length_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 30
+          },
+          "width_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 20
+          },
+          "height_cm": {
+            "type": "number",
+            "nullable": true,
+            "example": 10
+          },
+          "refrigerated": {
+            "type": "boolean",
+            "description": "Product requires refrigeration."
+          },
+          "expiration_date": {
+            "type": "string",
+            "nullable": true,
+            "example": "2027-03-31",
+            "description": "Expiration date (YYYY-MM-DD)."
+          },
+          "lot": {
+            "type": "string",
+            "nullable": true,
+            "example": "L2026-10"
+          },
+          "image_url": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cdn.example.com/sku-1.png"
+          },
+          "id": {
+            "type": "string"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "ean": {
+            "type": "string"
+          },
+          "alternate_eans": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "metadata",
+          "weight_kg",
+          "length_cm",
+          "width_cm",
+          "height_cm",
+          "refrigerated",
+          "expiration_date",
+          "lot",
+          "image_url",
+          "id",
+          "sku",
+          "name",
+          "description",
+          "ean",
+          "alternate_eans",
+          "active",
           "created_at",
           "updated_at"
         ]
